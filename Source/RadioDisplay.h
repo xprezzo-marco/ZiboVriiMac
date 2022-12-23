@@ -12,25 +12,19 @@ class VRiCommPort;
 class RadioDisplay {
 
 public:
-	enum RadioMode
-	{
-		None =0,
-		Com1 =1,
-        Com1Standby = 2,
-		Com2 = 3,
-        Com2Standby = 4,
-		Nav1 = 5,
-        Nav1Standby = 6,
-		Nav2= 7,
-        Nav2Standby = 8,
-		Adf1 = 9,
-        Adf1StandBy =10,
-		Adf2=11,
-        Adf2StandBy = 12,
-		Dme1 = 13,
-		Dme2 = 14,
-		Transponder = 15
-	};
+    enum RadioMode
+        {
+            None,
+            Com1, Com1Standby,
+            Com2, Com2Standby,
+            Nav1, Nav1Standby,
+            Nav2, Nav2Standby,
+            Adf1, Adf1StandBy,
+            Adf2, Adf2StandBy,
+            Dme1,
+            Dme2,
+            Transponder
+        };
 
 	RadioDisplay(BaseDeviceHandler* baseDeviceHandler, string name, XPLMDataRef dref, RadioMode radioMode);
 
@@ -50,8 +44,10 @@ protected:
 
 private:
 
-	void updateDisplay();
-	int MapVriToXp(int vriValue);
+    void updateDisplay();
+        void updateDisplayFMER();
+        void updateDisplayMCP2A();
+        void updateDisplayMCP2B();	int MapVriToXp(int vriValue);
 
 	string m_name;
 	RadioMode m_radioMode;

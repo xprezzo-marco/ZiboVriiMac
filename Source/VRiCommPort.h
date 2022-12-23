@@ -43,17 +43,25 @@ public:
 	void send(const char* command);
 
 private:
-	void poll();
+	void process();
+    bool Write(char* command, int delay);
+    void FMERInit();
+    void MCP2AInit();
+    void MCP2BInit();
+    void MCP2DisplayTop(char* message);
+    void MCP2DisplayBottom(char* message);
 
 	CommandOutQueue m_commands;
 	std::mutex m_commandMutex;
 
 	char m_szPortName[64];
+    
+   
 	std::thread *m_pollThread;
 
 	Status m_status;
 
-	bool m_poll;
+    bool m_process;
 
 	BaseDeviceHandler *m_parser;
 };

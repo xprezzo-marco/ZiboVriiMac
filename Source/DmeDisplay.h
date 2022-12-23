@@ -11,6 +11,7 @@
 
 
 #define MAX_IDENT 8
+#define MAX_DME_COMMAND 9
 
 class DmeDisplay {
 

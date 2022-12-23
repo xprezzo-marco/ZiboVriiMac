@@ -26,8 +26,10 @@ BaseAircraft::BaseAircraft(BaseDeviceHandler* baseDeviceHandler)
 
 }
 
+
 BaseAircraft::~BaseAircraft()
 {
+
 }
 
 bool BaseAircraft::initData() {
@@ -35,6 +37,8 @@ bool BaseAircraft::initData() {
 
     bool ret = initDataRef();
     ret &= initCommand();
+
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
 
     return ret;
 }
@@ -47,14 +51,16 @@ bool BaseAircraft::initDataRef() {
     bool ret = true;
 
     //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_TailNum,            "sim/aircraft/view/acf_tailnum");
-    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Altitude, "sim/cockpit2/autopilot/altitude_dial_ft");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Altitude, "laminar/B738/autopilot/mcp_alt_dial");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CoursePilot, "laminar/B738/autopilot/course_pilot");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CoursePilotFo, "laminar/B738/autopilot/course_copilot");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Speed, "sim/cockpit2/autopilot/airspeed_dial_kts_mach");
-    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Heading, "sim/cockpit2/autopilot/heading_dial_deg_mag_pilot");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Heading, "laminar/B738/autopilot/mcp_hdg_dial");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Vvs, "sim/cockpit2/autopilot/vvi_dial_fpm");
 
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Com1, "sim/cockpit/radios/com1_freq_hz");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Com1Standby, "sim/cockpit/radios/com1_stdby_freq_hz");
+
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Com2, "sim/cockpit/radios/com2_freq_hz");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Com2Standby, "sim/cockpit/radios/com2_stdby_freq_hz");
 
@@ -76,8 +82,9 @@ bool BaseAircraft::initDataRef() {
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_TransponderCode, "sim/cockpit2/radios/actuators/transponder_code");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_TransponderMode, "sim/cockpit2/radios/actuators/transponder_mode");
 
-    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, "laminar/B738/autopilot/autothrottle_arm_pos");
-    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_FlightDirector, "laminar/B738/autopilot/flight_director_pos");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, "laminar/B738/switches/autopilot/at_arm");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_FlightDirector, "laminar/B738/switches/autopilot/fd_ca");
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, "laminar/B738/switches/autopilot/fd_fo");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_ApMaster, "laminar/B738/autopilot/disconnect_pos");
 
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_SpdN1, "laminar/B738/autopilot/n1_status");
@@ -88,7 +95,7 @@ bool BaseAircraft::initDataRef() {
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_BankAngle, "laminar/B738/rotary/autopilot/bank_angle");
 
 
-    
+
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_AltHld, "laminar/B738/autopilot/alt_hld_status");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_VvsHld, "laminar/B738/autopilot/disconnect_pos");
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_AplVnav, "laminar/B738/autopilot/vs_status");
@@ -114,10 +121,36 @@ bool BaseAircraft::initDataRef() {
 
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_MapMode, "laminar/B738/EFIS_control/capt/map_mode_pos"); //Map mode. 0 = approach, 1 = vor, 2 = map, 3 = nav, 4 = plan"
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_MapRange, "laminar/B738/EFIS/capt/map_range"); //Map range, 0-7."
-
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_MapModeFo, "laminar/B738/EFIS_control/fo/map_mode_pos"); //Map mode. 0 = approach, 1 = vor, 2 = map, 3 = nav, 4 = plan"
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_MapRangeFo, "laminar/B738/EFIS/fo/map_range"); //Map range, 0-7."
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Vor1Pos, "laminar/B738/EFIS_control/capt/vor1_off_pos"); //1=VOR On 0=VOR off -1=ADf."
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Vor2Pos, "laminar/B738/EFIS_control/capt/vor2_off_pos"); //1=VOR On 0=VOR off -1=ADf."
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Vor1PosFo, "laminar/B738/EFIS_control/fo/vor1_off_pos"); //1=VOR On 0=VOR off -1=ADf."
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Vor2PosFo, "laminar/B738/EFIS_control/fo/vor2_off_pos"); //1=VOR On 0=VOR off -1=ADf."
+
     ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Course, "sim/cockpit2/radios/actuators/hsi_obs_deg_mag_pilot"); //course
+
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CurrentAltitude, "sim/cockpit2/gauges/indicators/altitude_ft_pilot"); //altitude
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CurrentAltitude, "laminar/B738/autopilot/altitude"); //altitude
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_SetAltitude, "laminar/B738/autopilot/mcp_alt_dial"); //altitude
+
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CurrentAirspeed, "laminar/B738/autopilot/airspeed"); //airspeed
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_SetAirspeed, "laminar/B738/autopilot/mcp_speed_dial_kts_mach"); //airspeed
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_CurrentHeading, "sim/cockpit2/gauges/indicators/heading_electric_deg_mag_pilot"); //heading
+
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Priority, "sim/joystick/priority_side"); //0 = Normal, 1 = Priority Left, 2 = Priority Right
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_BarStd, "laminar/B738/EFIS/baro_set_std_pilot"); //0 - off, 1 - STD
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_BarStdFo, "laminar/B738/EFIS/baro_set_std_copilot"); //0 - off, 1 - STD
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_Minimums, "laminar/B738/EFIS_control/cpt/minimums"); //0 / 1
+    ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_MinimumsFo, "laminar/B738/EFIS_control/fo/minimums"); //0 / 1
+
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_LandingLights, "sim/cockpit2/switches/landing_lights_on"); //0 / 1
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_TaxiLights, "sim/cockpit2/switches/taxi_light_on"); //0 / 1
+
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_NavigationLights, "sim/cockpit2/switches/navigation_lights_on"); //0 / 1
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_BeaconLights, "sim/cockpit2/switches/beacon_on"); //0 / 1
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_StrobeLights, "sim/cockpit2/switches/strobe_lights_on"); //0 / 1
+    //ret &= storeDataRef(BaseDeviceHandler::VriDataRef::DR_ApuSwitch, "sim/cockpit/engine/APU_switch"); //0 / 1
 
 
     if (!ret) {
@@ -166,8 +199,8 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplCmdCMin, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplCmdCPlus, nullptr);
 
-    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplDomeOn, "laminar/B738/toggle_switch/cockpit_dome_up");
-    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplDomeOff, "laminar/B738/toggle_switch/cockpit_dome_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplDomeUp, "laminar/B738/toggle_switch/cockpit_dome_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplDomeDown, "laminar/B738/toggle_switch/cockpit_dome_dn");
 
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplCwsAMin, "laminar/B738/autopilot/cws_a_press");
@@ -177,6 +210,8 @@ bool BaseAircraft::initCommand() {
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplFdMin, "laminar/B738/autopilot/flight_director_toggle");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplFdPlus, "laminar/B738/autopilot/flight_director_toggle");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplFdMinFo, "laminar/B738/autopilot/flight_director_fo_toggle");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::AplFdPlusFo, "laminar/B738/autopilot/flight_director_fo_toggle");
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplLnavMin, "laminar/B738/autopilot/lnav_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::AplLnavPlus, "laminar/B738/autopilot/lnav_press");
@@ -205,8 +240,15 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarUpperMin, "laminar/B738/pilot/barometer_down");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarUpperPlus, "laminar/B738/pilot/barometer_up");
 
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarLowerMinFo, "laminar/B738/EFIS_control/fo/baro_in_hpa_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarLowerPlusFo, "laminar/B738/EFIS_control/fo/baro_in_hpa_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarUpperMinFo, "laminar/B738/copilot/barometer_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarUpperPlusFo, "laminar/B738/copilot/barometer_up");
 
-    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarStd, "sim/instruments/barometer_2992");
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarStd, nullptr);
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vBarStdFo, nullptr);
+
     ret &= storeCommand(BaseDeviceHandler::VriCommand::BarSelMin, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::BarSelPlus, nullptr);
 
@@ -221,6 +263,7 @@ bool BaseAircraft::initCommand() {
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::CrsxxxMin, "sim/radios/obs_HSI_down");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::CrsxxxPlus, "sim/radios/obs_HSI_up");
+
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::CtlBn0Of, "sim/lights/landing_lights_off");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::CtlBn0On, "sim/lights/landing_lights_on");
@@ -252,6 +295,7 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiAdf1, "laminar/B738/EFIS_control/capt/vor1_off_dn");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiAdf2, "laminar/B738/EFIS_control/capt/vor2_off_dn");
 
+
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiArpt, "laminar/B738/EFIS_control/capt/push_button/arpt_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiData, "laminar/B738/EFIS_control/capt/push_button/data_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiFpv, "laminar/B738/EFIS_control/capt/push_button/fpv_press");
@@ -263,6 +307,20 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiVor2, "laminar/B738/EFIS_control/capt/vor2_off_up");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiWpt, "laminar/B738/EFIS_control/capt/push_button/wpt_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiWx, "laminar/B738/EFIS_control/capt/push_button/wxr_press");
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiAdf1Fo, "laminar/B738/EFIS_control/fo/vor1_off_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiAdf2Fo, "laminar/B738/EFIS_control/fo/vor2_off_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiArptFo, "laminar/B738/EFIS_control/fo/push_button/arpt_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiDataFo, "laminar/B738/EFIS_control/fo/push_button/data_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiFpvFo, "laminar/B738/EFIS_control/fo/push_button/fpv_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiMtrFo, "laminar/B738/EFIS_control/fo/push_button/mtrs_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiPosFo, "laminar/B738/EFIS_control/fo/push_button/pos_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiStaFo, "laminar/B738/EFIS_control/fo/push_button/sta_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiTerrFo, "laminar/B738/EFIS_control/fo/push_button/terr_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiVor1Fo, "laminar/B738/EFIS_control/fo/vor1_off_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiVor2Fo, "laminar/B738/EFIS_control/fo/vor2_off_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiWptFo, "laminar/B738/EFIS_control/fo/push_button/wpt_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiWxFo, "laminar/B738/EFIS_control/fo/push_button/wxr_press");
 
     ret &= storeCommand(BaseDeviceHandler::VriCommand::HdgHdgMin, "laminar/B738/autopilot/hdg_sel_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::HdgHdgPlus, "laminar/B738/autopilot/hdg_sel_press");
@@ -280,6 +338,14 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinReset, "laminar/B738/EFIS_control/capt/push_button/rst_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::MinSelPlus, nullptr);
 
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinLowerPlusFo, "laminar/B738/EFIS_control/fo/minimums_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinLowerMinFo, "laminar/B738/EFIS_control/fo/minimums_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinUpperMinFo, "laminar/B738/pfd/dh_copilot_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinUpperPlusFo, "laminar/B738/pfd/dh_copilot_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::vMinResetFo, "laminar/B738/EFIS_control/fo/push_button/rst_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::MinSelPlus, nullptr);
+
+
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NavAux, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::Navs, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NavS, nullptr);
@@ -293,13 +359,25 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmSelMin, "laminar/B738/EFIS_control/capt/push_button/ctr_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmSelPlus, "laminar/B738/EFIS_control/capt/push_button/ctr_press");
 
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmMinFo, "laminar/B738/EFIS_control/fo/map_mode_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmPlusFo, "laminar/B738/EFIS_control/fo/map_mode_up"); // CTR
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmSelMinFo, "laminar/B738/EFIS_control/fo/push_button/ctr_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdmSelPlusFo, "laminar/B738/EFIS_control/fo/push_button/ctr_press");
+
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrMin, "laminar/B738/EFIS_control/capt/map_range_dn");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrPlus, "laminar/B738/EFIS_control/capt/map_range_up"); // TFC
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrSelMin, "laminar/B738/EFIS_control/capt/push_button/tfc_press");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrSelPlus, "laminar/B738/EFIS_control/capt/push_button/tfc_press");
 
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrMinFo, "laminar/B738/EFIS_control/fo/map_range_dn");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrPlusFo, "laminar/B738/EFIS_control/fo/map_range_up"); // TFC
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrSelMinFo, "laminar/B738/EFIS_control/fo/push_button/tfc_press");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::NdrSelPlusFo, "laminar/B738/EFIS_control/fo/push_button/tfc_press");
+
     ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSMin, "sim/radios/obs_HSI_down");;
-    ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSPlus, "sim/radios/obs_HSI_up");// CRS
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSPlus, "sim/radios/obs_HSI_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSMinFo, "sim/radios/copilot_obs_HSI_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSPlusFo, "sim/radios/copilot_obs_HSI_up");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSSelMin, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::OBSSelPlus, nullptr);
 
@@ -324,6 +402,36 @@ bool BaseAircraft::initCommand() {
     ret &= storeCommand(BaseDeviceHandler::VriCommand::VvsPlus, "sim/autopilot/vertical_speed_up");
     ret &= storeCommand(BaseDeviceHandler::VriCommand::VvsSelMin, nullptr);
     ret &= storeCommand(BaseDeviceHandler::VriCommand::VvsSelPlus, nullptr);
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com1StbyFineDown, "sim/radios/stby_com1_fine_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com1StbyFineUp, "sim/radios/stby_com1_fine_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseUp, "sim/radios/stby_com1_coarse_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseDown, "sim/radios/stby_com1_coarse_down");
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com2StbyFineDown, "sim/radios/stby_com2_fine_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com2StbyFineUp, "sim/radios/stby_com2_fine_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseUp, "sim/radios/stby_com2_coarse_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseDown, "sim/radios/stby_com2_coarse_down");
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineDown, "sim/radios/stby_nav1_fine_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineUp, "sim/radios/stby_nav1_fine_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseUp, "sim/radios/stby_nav1_coarse_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseDown, "sim/radios/stby_nav1_coarse_down");
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineDown, "sim/radios/stby_nav2_fine_down");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineUp, "sim/radios/stby_nav2_fine_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseUp, "sim/radios/stby_nav2_coarse_up");
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseDown, "sim/radios/stby_nav2_coarse_down");
+
+
+
+
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiHpa, nullptr);
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiInHg, nullptr);
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiILS, nullptr);
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::EfiCstr, nullptr);
+    ret &= storeCommand(BaseDeviceHandler::VriCommand::FcuMach, "laminar/B738/autopilot/change_over_press");
+    
 
 
 
@@ -351,35 +459,40 @@ bool BaseAircraft::storeCommand(BaseDeviceHandler::VriCommand vriCommand, const 
     }
 
     if (cmdMap.count(vriCommand) > 0) {
-        VLError("storeCommand: vriCommand [%d] already exists [%s]", vriCommand, apiCommand);
+        VLError("storeCommand: vriCommand [%s] already exists [%s]", ConvertVriCommandToString(vriCommand).c_str(), apiCommand);
 
         return false;
     }
 
-    VLLog("storeCommand: vriCommand [%d] apiCommand [%s]", vriCommand, apiCommand);
+    VLTrace("storeCommand: vriCommand [%s] apiCommand [%s]", ConvertVriCommandToString(vriCommand).c_str(), apiCommand);
 
     cmdMap[vriCommand] = command;
+    cmdMapStr[vriCommand] = apiCommand;
 
     return true;
 }
 
 bool BaseAircraft::storeDataRef(BaseDeviceHandler::VriDataRef vriDataRef, const char* apiReference) {
 
-    if (apiReference == nullptr){
+    if (apiReference == nullptr ) {
         return true;
     }
+
     XPLMDataRef dataRef = findDataRef(apiReference);
     if (dataRef == nullptr) {
+        drMapStr[vriDataRef] = "";
+
         return false;
     }
 
     if (drMap.count(vriDataRef) > 0) {
-        VLError("storeDataRef: vriDataRef [%d] already exists [%s]", vriDataRef, apiReference);
+        VLError("storeDataRef: vriDataRef [%s] already exists [%s]", ConvertVriDatarefToString(vriDataRef).c_str(), apiReference);
         return false;
     }
-    VLLog("storeDataRef:vriDataRef [%d] apiReference [%s]", vriDataRef, apiReference);
+    VLTrace("storeDataRef:vriDataRef [%s] apiReference [%s]", ConvertVriDatarefToString(vriDataRef).c_str(), apiReference);
 
     drMap[vriDataRef] = dataRef;
+    drMapStr[vriDataRef] = apiReference;
 
     return true;
 }
@@ -421,11 +534,18 @@ void BaseAircraft::updateMcpDisplays()
 
 void BaseAircraft::updateIdent(const char* ident) {
 
-    m_baseDeviceHandler->sendToCom(ident);
+    switch (m_baseDeviceHandler->vriInsightEquipment) {
+    case BaseDeviceHandler::VriInsightEquipment::cmdfmer:
+        m_baseDeviceHandler->sendToCom(ident);
+        break;
+
+    default:
+
+        // not supported for now
+        break;
+    }
 
 }
-
-
 
 
 
@@ -446,6 +566,7 @@ void BaseAircraft::initMcpDisplays() {
     m_speed = new McpDisplay(m_baseDeviceHandler, drSpeed, McpDisplay::McpMode::Speed);
     m_heading = new McpDisplay(m_baseDeviceHandler, drHeading, McpDisplay::McpMode::Heading);
     m_altitude = new McpDisplay(m_baseDeviceHandler, drAltitude, McpDisplay::McpMode::Altitude);
+
 
     updateMcpDisplays();
 
@@ -548,6 +669,9 @@ void BaseAircraft::initializeRadios()
     m_dme2->sync();
 
 
+
+
+
 }
 void BaseAircraft::updateRadios()
 {
@@ -615,17 +739,31 @@ XPLMDataRef BaseAircraft::getDataRef(BaseDeviceHandler::VriDataRef vriDataRef) {
     return ref;
 }
 
-
-
-
-
-
 bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command)
+{
+    switch (m_baseDeviceHandler->vriInsightEquipment) {
+    default:
+    case BaseDeviceHandler::VriInsightEquipment::cmdfmer:
+        return handleCommandFMER(command);
+
+    case BaseDeviceHandler::VriInsightEquipment::cmdmcp2a:
+        return handleCommandMCP2A(command);
+
+
+    case BaseDeviceHandler::VriInsightEquipment::cmdmcp2b:
+
+        return handleCommandMCP2B(command);
+
+    }
+}
+
+
+
+bool BaseAircraft::handleCommandFMER(BaseDeviceHandler::VriCommandParameters command)
 {
     int adf1Value = -1;
     int adf2Value = -1;
 
-    VLTrace("handleCommand: command %d ", command.m_command);
     switch (command.m_command)
     {
     case BaseDeviceHandler::VriCommand::AdfSel1:    selectRadio("ADF1 Selected", m_adf1Stby); return true;
@@ -737,32 +875,49 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
 
     case BaseDeviceHandler::VriCommand::AplAtPlus:
-        if (getDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, -1) != 1)
-        {
-            scheduleWithSpeechCommand(command.m_command, "Auto Throttle Enabled");
-        }
+
+        Speak("Auto Throttle Enabled");
+        setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 1);
         return true;
 
     case BaseDeviceHandler::VriCommand::AplAtMin:
 
-        if (getDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, -1) != 0) {
-            scheduleWithSpeechCommand(command.m_command, "Auto Throttle Disabled");
-        }
+        Speak("Auto Throttle Disabled");
+        setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 0);
+
         return true;
 
     case BaseDeviceHandler::VriCommand::AplFdPlus:
 
-        if (getDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, -1) != 1) {
-            scheduleWithSpeechCommand(command.m_command, "Flight Director Enabled");
+        if (efisCaptainControl) {
+
+            Speak("Captain Flight Director Enabled");
+
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 1);
+            return true;
         }
+
+
+        Speak("First Officer Flight Director Enabled");
+
+        setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 1);
         return true;
 
     case BaseDeviceHandler::VriCommand::AplFdMin:
 
-        if (getDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, -1) != 0) {
-            scheduleWithSpeechCommand(command.m_command, "Flight Director Disabled");
+        if (efisCaptainControl) {
+
+            Speak("Captain Flight Director Disabled");
+
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 0);
+            return true;
         }
+
+        Speak("First Officer Flight Director Disabled");
+
+        setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 0);
         return true;
+
 
         // reverse
     case BaseDeviceHandler::VriCommand::AplMastPlus:
@@ -784,7 +939,6 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
     case BaseDeviceHandler::VriCommand::HdgSelPlus:
         Speak("BankAngle Selected");
         hdgUpperSelected = true;
-        bankAngle = updateBankAngle();
         return true;
 
     case BaseDeviceHandler::VriCommand::HdgSelMin:
@@ -794,7 +948,7 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
     case BaseDeviceHandler::VriCommand::HdgXXXPlus:
         if (hdgUpperSelected) {
-            return  handleBankAngle(command.m_command);
+            return  handleBankAngle(true, BaseDeviceHandler::VriDataRef::DR_BankAngle);
         }
 
         scheduleCommand(command.m_command);
@@ -802,7 +956,7 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
     case BaseDeviceHandler::VriCommand::HdgXXXMin:
         if (hdgUpperSelected) {
-            return  handleBankAngle(command.m_command);
+            return  handleBankAngle(false, BaseDeviceHandler::VriDataRef::DR_BankAngle);
         }
 
         scheduleCommand(command.m_command);
@@ -812,22 +966,24 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
     case BaseDeviceHandler::VriCommand::MinSelPlus:
 
-        if (checkFastToggle(minSelectedMs, 200)) {
-            scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::vMinReset, "Minimums Reset");
+        if (checkFastToggle("MinSelPlus", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
             return true;
         }
-
+        updateIdent("DSP0MINS");
+        updateIdent("DSP1  UP");
         Speak("Minimums Upper Selected");
         minUpperSelected = true;
         return true;
 
     case BaseDeviceHandler::VriCommand::MinSelMin:
 
-        if (checkFastToggle(minSelectedMs, 200)) {
-            scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::vMinReset, "Minimums Reset");
+        if (checkFastToggle("MinSelPlus", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
             return true;
         }
-
+        updateIdent("DSP0MINS");
+        updateIdent("DSP1 LOW");
         Speak("Minimums Lower Selected");
 
         minUpperSelected = false;
@@ -836,31 +992,35 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
     case BaseDeviceHandler::VriCommand::MinPlus:
 
         if (minUpperSelected) {
-            scheduleCommand(BaseDeviceHandler::VriCommand::vMinUpperPlus);
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperPlus, BaseDeviceHandler::VriCommand::vMinUpperPlusFo, "");
             return true;
 
         }
-        scheduleCommand(BaseDeviceHandler::VriCommand::vMinLowerPlus);
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerPlus, BaseDeviceHandler::VriCommand::vMinLowerPlusFo, "");
         return true;
 
     case BaseDeviceHandler::VriCommand::MinMin:
 
         if (minUpperSelected) {
-            scheduleCommand(BaseDeviceHandler::VriCommand::vMinUpperMin);
-
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperMin, BaseDeviceHandler::VriCommand::vMinUpperMinFo, "");
             return true;
         }
 
-        scheduleCommand(BaseDeviceHandler::VriCommand::vMinLowerMin);
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerMin, BaseDeviceHandler::VriCommand::vMinLowerMinFo, "");
         return true;
 
 
         // BARO
     case BaseDeviceHandler::VriCommand::BarSelPlus:
-        if (checkFastToggle(baroSelectedMs, 200)) {
-            scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::vBarStd, "Baro Standard");
+
+        if (checkFastToggle("BarSelPlus", baroSelectedMs, 400)) {
+
+            toggleBarStdorOff(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd);
             return true;
         }
+        updateIdent("DSP0BARO");
+        updateIdent("DSP1  UP");
 
         Speak("Baro Upper Selected");
         baroUpperSelected = true;
@@ -868,67 +1028,133 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
     case BaseDeviceHandler::VriCommand::BarSelMin:
 
-        if (checkFastToggle(baroSelectedMs, 200)) {
-            scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::vBarStd, "Baro Standard");
+        if (checkFastToggle("BarSelMin", baroSelectedMs, 400)) {
+            toggleBarStdorOff(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd);
             return true;
         }
 
+        updateIdent("DSP0BARO");
+        updateIdent("DSP1 LOW");
+
         Speak("Baro Lower Selected");
         baroUpperSelected = false;
+        return true;
 
     case BaseDeviceHandler::VriCommand::BarPlus:
 
         if (baroUpperSelected) {
-            scheduleCommand(BaseDeviceHandler::VriCommand::vBarUpperPlus);
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperPlus, BaseDeviceHandler::VriCommand::vBarUpperPlusFo, "");
             return true;
 
         }
-        scheduleCommand(BaseDeviceHandler::VriCommand::vBarLowerPlus);
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerPlus, BaseDeviceHandler::VriCommand::vBarLowerPlusFo, "");
         return true;
 
     case BaseDeviceHandler::VriCommand::BarMin:
 
         if (baroUpperSelected) {
-            scheduleCommand(BaseDeviceHandler::VriCommand::vBarUpperMin);
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperMin, BaseDeviceHandler::VriCommand::vBarUpperMinFo, "");
             return true;
         }
 
-        scheduleCommand(BaseDeviceHandler::VriCommand::vBarLowerMin);
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerMin, BaseDeviceHandler::VriCommand::vBarLowerMinFo, "");
         return true;
 
     case BaseDeviceHandler::VriCommand::NdrSelMin:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelMin, BaseDeviceHandler::VriCommand::NdrSelMinFo, "TFC Selected");
+        return true;
+
+
     case BaseDeviceHandler::VriCommand::NdrSelPlus:
-        scheduleWithSpeechCommand(command.m_command, "TFC Selected");
-        break;
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelPlus, BaseDeviceHandler::VriCommand::NdrSelPlusFo, "TFC Selected");
+        return true;
+
 
     case BaseDeviceHandler::VriCommand::NdrMin:
-        setMapRange(command.m_command);
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrMin,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrMinFo);
+
+
         return true;
 
     case BaseDeviceHandler::VriCommand::NdrPlus:
-        setMapRange(command.m_command);
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrPlusFo);
+
+
         return true;
 
+
     case BaseDeviceHandler::VriCommand::NdmSelMin: //CTR
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelMin, BaseDeviceHandler::VriCommand::NdmSelMinFo, "CTR Selected");
+        return true;
+
+
     case BaseDeviceHandler::VriCommand::NdmSelPlus:
-        scheduleWithSpeechCommand(command.m_command, "CTR Selected");
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelPlus, BaseDeviceHandler::VriCommand::NdmSelPlusFo, "CTR Selected");
         return true;
 
 
     case BaseDeviceHandler::VriCommand::NdmPlus:
-        setMapMode(command.m_command);
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmPlusFo);
+
+
         return true;
+
     case BaseDeviceHandler::VriCommand::NdmMin:
-        setMapMode(command.m_command);
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmMin,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmMinFo);
+
         return true;
 
 
 
-    case BaseDeviceHandler::VriCommand::EfiVor1:        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor1Pos, command.m_command); return true;
-    case BaseDeviceHandler::VriCommand::EfiAdf1:        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor1Pos, command.m_command); return true;
+    case BaseDeviceHandler::VriCommand::EfiVor1:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiVor1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor1Fo);
+        return true;
 
-    case BaseDeviceHandler::VriCommand::EfiVor2:        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor2Pos, command.m_command); return true;
-    case BaseDeviceHandler::VriCommand::EfiAdf2:        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor2Pos, command.m_command); return true;
+    case BaseDeviceHandler::VriCommand::EfiAdf1:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf1Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiVor2:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiVor2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor2Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiAdf2:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf2Fo);
+        return true;
 
     case BaseDeviceHandler::VriCommand::AplTogaPlus:    scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
     case BaseDeviceHandler::VriCommand::AplTogaMin:        scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
@@ -936,25 +1162,55 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
     case BaseDeviceHandler::VriCommand::AplTogbPlus:    scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
     case BaseDeviceHandler::VriCommand::AplTogbMin:        scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
 
-    case BaseDeviceHandler::VriCommand::OBSPlus:        setCourse(command.m_command);         return true;
-    case BaseDeviceHandler::VriCommand::OBSMin:            setCourse(command.m_command);         return true;
+    case BaseDeviceHandler::VriCommand::OBSPlus:        setCourse(BaseDeviceHandler::VriCommand::OBSPlus, BaseDeviceHandler::VriCommand::OBSPlusFo);         return true;
+    case BaseDeviceHandler::VriCommand::OBSMin:            setCourse(BaseDeviceHandler::VriCommand::OBSMin, BaseDeviceHandler::VriCommand::OBSMinFo);         return true;
 
     case BaseDeviceHandler::VriCommand::OBSSelPlus:        syncCourse();return true;
     case BaseDeviceHandler::VriCommand::OBSSelMin:        syncCourse();return true;
 
 
-    case BaseDeviceHandler::VriCommand::EfiMtr:        scheduleWithSpeechCommand(command.m_command, "Meters");                        return true;
-    case BaseDeviceHandler::VriCommand::EfiFpv:        scheduleWithSpeechCommand(command.m_command, "flight path vector");    return true;
-    case BaseDeviceHandler::VriCommand::EfiWx:        scheduleWithSpeechCommand(command.m_command, "Weather");            return true;
-    case BaseDeviceHandler::VriCommand::EfiSta:        scheduleWithSpeechCommand(command.m_command, "Station");            return true;
-    case BaseDeviceHandler::VriCommand::EfiWpt:        scheduleWithSpeechCommand(command.m_command, "Waypoints");            return true;
-    case BaseDeviceHandler::VriCommand::EfiArpt:    scheduleWithSpeechCommand(command.m_command, "Airports");            return true;
-    case BaseDeviceHandler::VriCommand::EfiData:    scheduleWithSpeechCommand(command.m_command, "Data");                return true;
-    case BaseDeviceHandler::VriCommand::EfiPos:        scheduleWithSpeechCommand(command.m_command, "Position");            return true;
-    case BaseDeviceHandler::VriCommand::EfiTerr:    scheduleWithSpeechCommand(command.m_command, "Terrain");            return true;
+    case BaseDeviceHandler::VriCommand::EfiMtr:
 
-    case BaseDeviceHandler::VriCommand::SpdSelPlus: scheduleWithSpeechCommand(command.m_command, "Speed Pressed");        return true;
-    case BaseDeviceHandler::VriCommand::SpdSelMin:  scheduleWithSpeechCommand(command.m_command, "Speed Pressed");        return true;
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiMtr, BaseDeviceHandler::VriCommand::EfiMtrFo, "Meters");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiFpv:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiFpv, BaseDeviceHandler::VriCommand::EfiFpvFo, "flight path vector");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWx:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWx, BaseDeviceHandler::VriCommand::EfiWxFo, "Weather");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiSta:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiSta, BaseDeviceHandler::VriCommand::EfiStaFo, "Station");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWpt, BaseDeviceHandler::VriCommand::EfiWptFo, "Waypoints");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiArpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiArpt, BaseDeviceHandler::VriCommand::EfiArptFo, "Airports");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiData:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiData, BaseDeviceHandler::VriCommand::EfiDataFo, "Data");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiPos:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiPos, BaseDeviceHandler::VriCommand::EfiPosFo, "Position");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiTerr:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiTerr, BaseDeviceHandler::VriCommand::EfiTerrFo, "Terrain");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdSelPlus: syncAirSpeed();        return true;
+    case BaseDeviceHandler::VriCommand::SpdSelMin:  syncAirSpeed();        return true;
+
         // speed
     case BaseDeviceHandler::VriCommand::SpdXXXPlus:
     case BaseDeviceHandler::VriCommand::SpdXXXMin:
@@ -1000,6 +1256,9 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
         scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AltHld, command.m_command, "Altitude Hold Select", "DSP0ALT ", "DSP1HLD ");
         return true;
 
+    case BaseDeviceHandler::VriCommand::AltSelPlus:        syncAltitude(); return true;
+    case BaseDeviceHandler::VriCommand::AltSelMin:        syncAltitude(); return true;
+
         //vvs
     case BaseDeviceHandler::VriCommand::VvsPlus:
     case BaseDeviceHandler::VriCommand::VvsMin:
@@ -1010,7 +1269,7 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
     case BaseDeviceHandler::VriCommand::VvsSelMin:
         resetVvs();
         return true;
-        
+
 
     case BaseDeviceHandler::VriCommand::VvsHldPlus:
     case BaseDeviceHandler::VriCommand::VvsHldMin:
@@ -1044,7 +1303,7 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
             scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
             return true;
         }
-        setLights();
+        setLights(lightMode);
         return true;
 
     case BaseDeviceHandler::VriCommand::AplCmdCPlus:
@@ -1053,7 +1312,722 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
             scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
             return true;
         }
-        setLights();
+        setLights(lightMode);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplLocMin:
+    case BaseDeviceHandler::VriCommand::AplLocPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplLoc, command.m_command, "LOC", "DSP0LOC ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCwsAMin:
+    case BaseDeviceHandler::VriCommand::AplCwsAPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_CwsA, command.m_command, "CWS A", "DSP0CWSA ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCwsBMin:
+    case BaseDeviceHandler::VriCommand::AplCwsBPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_CwsB, command.m_command, "CWS B", "DSP0CWSB ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplAppMin:
+    case BaseDeviceHandler::VriCommand::AplAppPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplApp, command.m_command, "Approach", "DSP0APP ", NO_IDENT1);
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::CtlBn0On:        scheduleWithSpeechCommand(command.m_command, "landing lights");        return true;
+    case BaseDeviceHandler::VriCommand::CtlBn0Of:        scheduleWithSpeechCommand(command.m_command, "landing lights");         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1On:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1Of:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);     return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2On:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2Of:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3On:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3Of:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4On:        scheduleWithSpeechCommand(command.m_command, "wheel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4Of:        scheduleWithSpeechCommand(command.m_command, "weel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5On:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5Of:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+
+    //case BaseDeviceHandler::VriCommand::CtlBn0On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_LandingLights, "landing lights On", 1);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn0Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_LandingLights, "landing lights Off", 0);return true;
+
+    //case BaseDeviceHandler::VriCommand::CtlBn1On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_TaxiLights, "taxi lights On", 1);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn1Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_TaxiLights, "taxi lights Off", 0);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn2On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_NavigationLights, "navigation lights On", 1);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn2Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_NavigationLights, "navigation lights Off", 0);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn3On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_BeaconLights, "beacon lights On", 1);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn3Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_BeaconLights, "beacon lights Off", 0);return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn4On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_StrobeLights, "strobe lights On", 1); return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn4Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_StrobeLights, "strobe lights Off", 0); return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn5On:        setSwitch(BaseDeviceHandler::VriDataRef::DR_ApuSwitch, "Apu On", 1); return true;
+    //case BaseDeviceHandler::VriCommand::CtlBn5Of:        setSwitch(BaseDeviceHandler::VriDataRef::DR_ApuSwitch, "Apu Off", 0); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn6On:
+    case BaseDeviceHandler::VriCommand::CtlBn6Of:        handleEfisControl();
+        //scheduleWithSpeechCommand(command.m_command, "Landing gear");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::CtlBn7On:
+    case BaseDeviceHandler::VriCommand::CtlBn7Of:
+
+
+        handleSpeech();
+
+        return true;
+
+    default:
+        Speak("Unassigned button detected");
+        return true;
+    }
+
+    return true;
+
+
+}
+void BaseAircraft::toggleMinimumsMode(BaseDeviceHandler::VriDataRef vriDataRefCapt, BaseDeviceHandler::VriDataRef vriDataRefFo) {
+    minUpperSelected = true;
+
+
+    updateIdent("DSP0BMINS");
+
+    BaseDeviceHandler::VriDataRef dref = vriDataRefCapt;
+    int status = 0;
+    if (!efisCaptainControl) {
+        dref = vriDataRefFo;
+    }
+
+    status = getDatai(dref, 0);
+
+    if (status == 0) {
+        setDatai(dref, 1);
+        updateIdent("DSP1  ON");
+        Speak("Minimums Set");
+
+    }
+    else {
+        setDatai(dref, 0);
+        updateIdent("DSP1 off");
+        Speak("Minimums off");
+
+    }
+}
+
+
+void BaseAircraft::setBarStd(BaseDeviceHandler::VriDataRef vriDataRefCapt, BaseDeviceHandler::VriDataRef vriDataRefFo, int barStd) {
+    BaseDeviceHandler::VriDataRef dref = vriDataRefCapt;
+    if (!efisCaptainControl) {
+        dref = vriDataRefFo;
+    }
+
+    setDatai(dref, barStd);
+    if (barStd) {
+        Speak("Standard barometer on");
+    }
+    else {
+        setDatai(dref, 0);
+        Speak("Standard barometer off");
+
+    }
+}
+
+void BaseAircraft::toggleBarStdorOff(BaseDeviceHandler::VriDataRef vriDataRefCapt, BaseDeviceHandler::VriDataRef vriDataRefFo) {
+
+    updateIdent("DSP0BARO");
+
+    baroUpperSelected = true;
+
+
+    BaseDeviceHandler::VriDataRef dref = vriDataRefCapt;
+    if (!efisCaptainControl) {
+        dref = vriDataRefFo;
+    }
+
+    int status = getDatai(dref, 0);
+
+    if (status == 0) {
+        setDatai(dref, 1);
+        updateIdent("DSP1 STD");
+        Speak("Standard barometer");
+
+
+    }
+    else {
+        setDatai(dref, 0);
+        updateIdent("DSP1 off");
+        Speak("barometer off");
+
+    }
+
+
+}
+
+void BaseAircraft::setSwitch(BaseDeviceHandler::VriDataRef vriDataRef, const char* msg, int on) {
+
+    setDatai(vriDataRef, on);
+
+    Speak(msg);
+
+}
+
+
+
+
+bool BaseAircraft::handleCommandMCP2A(BaseDeviceHandler::VriCommandParameters command)
+{
+  
+
+    switch (command.m_command)
+    {
+
+    case BaseDeviceHandler::VriCommand::RADFRE_MINMIN:
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseDown);    return true;    }
+
+
+        default:
+            break;
+        }
+        return false;
+
+
+
+    case BaseDeviceHandler::VriCommand::RADFRE_MIN:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineDown);    return true;    }
+
+        default:
+            break;
+        }
+        return false;
+
+    case BaseDeviceHandler::VriCommand::RADFRE_PLUSPLUS:
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseUp);    return true;    }
+
+
+        default:
+            break;
+        }
+        return false;
+
+
+
+    case BaseDeviceHandler::VriCommand::RADFRE_PLUS:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineUp);    return true;    }
+
+        default:
+            break;
+        }
+        return false;
+
+    case BaseDeviceHandler::VriCommand::RADCOM:
+
+        // toggle
+        m_com1Active = !m_com1Active;
+
+        if (m_com1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Com1Standby;
+            selectRadio("COM 1 Selected", m_com1Stby);
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Com2Standby;
+            selectRadio("COM 2 Selected", m_com2Stby);
+        }
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADNAV:
+
+        // toggle
+        m_nav1Active = !m_nav1Active;
+
+        if (m_nav1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Nav1Standby;
+            selectRadio("Radio Navigation 1 Selected", m_nav1Stby);
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Nav2Standby;
+            selectRadio("Radio Navigation 2 Selected", m_nav1Stby);
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADDME:
+        // toggle
+        m_dme1Active = !m_dme1Active;
+
+        if (m_dme1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Dme1;
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Dme2;
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADADF:
+        // toggle
+        m_adf1Active = !m_adf1Active;
+
+        if (m_adf1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Adf1;
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Adf1;
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADTRAN:            m_selectedRadio = RadioDisplay::RadioMode::Transponder;            return true;
+    case BaseDeviceHandler::VriCommand::RADTFR:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     transferRadio("COM1 exchange", m_com1Act, m_com1Stby);    return true;}
+        case RadioDisplay::RadioMode::Com2Standby: {     transferRadio("COM2 exchange", m_com2Act, m_com2Stby);    return true;}
+        case RadioDisplay::RadioMode::Nav1Standby: {     transferRadio("Radio Navigation 1 exchange", m_nav1Act, m_nav1Stby);    return true;}
+        case RadioDisplay::RadioMode::Nav2Standby: {     transferRadio("Radio Navigation 2 exchange", m_nav2Act, m_nav2Stby);    return true;}
+
+        default:
+            break;
+        }
+
+        return false;
+
+
+
+
+
+
+    case BaseDeviceHandler::VriCommand::TrnSel:        selectRadio("Transponder Selected", m_transponder);        return true;
+    case BaseDeviceHandler::VriCommand::Trns:        m_transponder->updateVri2Xp(command.m_value);        return true;
+
+    case BaseDeviceHandler::VriCommand::TrnAux:
+        scheduleCommand(BaseDeviceHandler::VriCommand::TrnAux);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::Trnx:
+        scheduleCommand(BaseDeviceHandler::VriCommand::Trnx);
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::AplAtPlus:
+
+        if (getDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, -1) == 0) {
+            Speak("Auto Throttle Enabled");
+            setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 1);
+        }
+        else {
+            Speak("Auto Throttle Disabled");
+            setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 0);
+
+        }
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::AplFdPlus:
+
+        if (efisCaptainControl) {
+
+            if (getDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, -1) == 0) {
+                Speak("Captain Flight Director Enabled");
+                setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 1);
+                return true;
+            }
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 0);
+            Speak("Captain Flight Director Disabled");
+            return true;
+        }
+
+        if (getDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, -1) == 0) {
+            Speak("First Officer Flight Director Enabled");
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 1);
+            return true;
+        }
+        setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 0);
+        Speak("First Officer Flight Director Disabled");
+
+        return true;
+
+
+
+
+    case BaseDeviceHandler::VriCommand::HdgSelPlus:
+        Speak("BankAngle Selected");
+        hdgUpperSelected = true;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgSelMin:
+        Speak("Heading Selected");
+        hdgUpperSelected = false;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgXXXPlus:
+        if (hdgUpperSelected) {
+            return  handleBankAngle(true, BaseDeviceHandler::VriDataRef::DR_BankAngle);
+        }
+
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgXXXMin:
+        if (hdgUpperSelected) {
+            return  handleBankAngle(false, BaseDeviceHandler::VriDataRef::DR_BankAngle);
+        }
+
+        scheduleCommand(command.m_command);
+        return true;
+
+        // MIN
+
+    case BaseDeviceHandler::VriCommand::MinSelPlus:
+
+        if (checkFastToggle("MinSelPlus", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
+            return true;
+        }
+
+
+        Speak("Minimums Upper Selected");
+        minUpperSelected = true;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinSelMin:
+
+        if (checkFastToggle("MinSelMin", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
+            return true;
+        }
+
+        Speak("Minimums Lower Selected");
+
+        minUpperSelected = false;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinPlus:
+
+        if (minUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperPlus, BaseDeviceHandler::VriCommand::vMinUpperPlusFo, "");
+            return true;
+
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerPlus, BaseDeviceHandler::VriCommand::vMinLowerPlusFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinMin:
+
+        if (minUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperMin, BaseDeviceHandler::VriCommand::vMinUpperMinFo, "");
+            return true;
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerMin, BaseDeviceHandler::VriCommand::vMinLowerMinFo, "");
+        return true;
+
+
+        // BARO
+    case BaseDeviceHandler::VriCommand::BarSelPlus: // switch to MINS because we do not have that on an airbus one
+        return true;
+    case BaseDeviceHandler::VriCommand::BarSelMin://  switch to MINS because we do not have that on an airbus one
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiInHg:
+        setBarStd(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd, 1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiHpa:
+        setBarStd(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd, 0);
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::BarPlus:
+
+        if (baroUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperPlus, BaseDeviceHandler::VriCommand::vBarUpperPlusFo, "");
+            return true;
+
+        }
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerPlus, BaseDeviceHandler::VriCommand::vBarLowerPlusFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::BarMin:
+
+        if (baroUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperMin, BaseDeviceHandler::VriCommand::vBarUpperMinFo, "");
+            return true;
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerMin, BaseDeviceHandler::VriCommand::vBarLowerMinFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdrSelMin:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelMin, BaseDeviceHandler::VriCommand::NdrSelMinFo, "TFC Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdrSelPlus:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelPlus, BaseDeviceHandler::VriCommand::NdrSelPlusFo, "TFC Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdrMin:
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrMin,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrMinFo);
+
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdrPlus:
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrPlusFo);
+
+
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmSelMin: //CTR
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelMin, BaseDeviceHandler::VriCommand::NdmSelMinFo, "CTR Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmSelPlus:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelPlus, BaseDeviceHandler::VriCommand::NdmSelPlusFo, "CTR Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmPlus:
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmPlusFo);
+
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdmMin:
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmMin,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmMinFo);
+
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::EfiVor1:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiVor1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor1Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiAdf1:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf1Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiVor2:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiVor2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor2Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiAdf2:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf2Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplTogaPlus:    scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
+    case BaseDeviceHandler::VriCommand::AplTogaMin:        scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
+
+    case BaseDeviceHandler::VriCommand::AplTogbPlus:    scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
+    case BaseDeviceHandler::VriCommand::AplTogbMin:        scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
+
+    case BaseDeviceHandler::VriCommand::OBSPlus:        setCourse(BaseDeviceHandler::VriCommand::OBSPlus, BaseDeviceHandler::VriCommand::OBSPlusFo);         return true;
+    case BaseDeviceHandler::VriCommand::OBSMin:            setCourse(BaseDeviceHandler::VriCommand::OBSMin, BaseDeviceHandler::VriCommand::OBSMinFo);         return true;
+
+    case BaseDeviceHandler::VriCommand::OBSSelPlus:        syncCourse();return true;
+    case BaseDeviceHandler::VriCommand::OBSSelMin:        syncCourse();return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiMtr:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiMtr, BaseDeviceHandler::VriCommand::EfiMtrFo, "Meters");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiFpv:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiFpv, BaseDeviceHandler::VriCommand::EfiFpvFo, "flight path vector");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWx:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWx, BaseDeviceHandler::VriCommand::EfiWxFo, "Weather");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiSta:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiSta, BaseDeviceHandler::VriCommand::EfiStaFo, "Station");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWpt, BaseDeviceHandler::VriCommand::EfiWptFo, "Waypoints");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiArpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiArpt, BaseDeviceHandler::VriCommand::EfiArptFo, "Airports");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiData:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiData, BaseDeviceHandler::VriCommand::EfiDataFo, "Data");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiPos:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiPos, BaseDeviceHandler::VriCommand::EfiPosFo, "Position");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiTerr:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiTerr, BaseDeviceHandler::VriCommand::EfiTerrFo, "Terrain");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdSelPlus: syncAirSpeed();        return true;
+    case BaseDeviceHandler::VriCommand::SpdSelMin:  syncAirSpeed();        return true;
+
+        // speed
+    case BaseDeviceHandler::VriCommand::SpdXXXPlus:
+    case BaseDeviceHandler::VriCommand::SpdXXXMin:
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdN1Plus:
+    case BaseDeviceHandler::VriCommand::SpdN1Min:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdN1, command.m_command, "N1 Select", "DSP0N1  ", NO_IDENT1);
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::SpdSpdPlus:
+    case BaseDeviceHandler::VriCommand::SpdSpdMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdSpd, command.m_command, "Speed Select", "DSP0SPD ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdLvlPlus:
+    case BaseDeviceHandler::VriCommand::SpdLvlMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdLvl, command.m_command, "FlightLevel change", "DSP0FLCH", NO_IDENT1);
+        return true;
+
+        // heading
+
+    case BaseDeviceHandler::VriCommand::HdgHdgPlus:
+    case BaseDeviceHandler::VriCommand::HdgHdgMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_HdgHdg, command.m_command, "Heading Select", "DSP0HDG ", "DSP1SEL ");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgHldPlus:
+    case BaseDeviceHandler::VriCommand::HdgHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_HdgHld, command.m_command, "Heading Hold Select", "DSP0HDG ", "DSP1HLD ");
+        return true;
+
+        // altitude
+    case BaseDeviceHandler::VriCommand::AltXXXPlus:
+    case BaseDeviceHandler::VriCommand::AltXXXMin:
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AltHldPlus:
+    case BaseDeviceHandler::VriCommand::AltHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AltHld, command.m_command, "Altitude Hold Select", "DSP0ALT ", "DSP1HLD ");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AltSelPlus:        syncAltitude(); return true;
+    case BaseDeviceHandler::VriCommand::AltSelMin:        syncAltitude(); return true;
+
+        //vvs
+    case BaseDeviceHandler::VriCommand::VvsPlus:
+    case BaseDeviceHandler::VriCommand::VvsMin:
+        setVvs(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::VvsSelPlus:
+    case BaseDeviceHandler::VriCommand::VvsSelMin:
+        resetVvs();
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::VvsHldPlus:
+    case BaseDeviceHandler::VriCommand::VvsHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_VvsHld, command.m_command, "Vertical Speed Select", "DSP0V/S ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplVnavPlus:
+    case BaseDeviceHandler::VriCommand::AplVnavMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplVnav, command.m_command, "VNAV", "DSP0VNAV", NO_IDENT1);
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplLnavPlus:
+    case BaseDeviceHandler::VriCommand::AplLnavMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplLnav, command.m_command, "LNAV", "DSP0LNAV", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdAMin:
+    case BaseDeviceHandler::VriCommand::AplCmdAPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdA, command.m_command, "Command A", "DSP0CMDA", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdBMin:
+    case BaseDeviceHandler::VriCommand::AplCmdBPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdB, command.m_command, "Command B", "DSP0CMDB", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdCMin:
+
+        if (commandDefined(command.m_command)) {
+            scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
+            return true;
+        }
+        setLights(lightMode);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdCPlus:
+
+        if (commandDefined(command.m_command)) {
+            scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
+            return true;
+        }
+        setLights(lightMode);
         return true;
 
     case BaseDeviceHandler::VriCommand::AplLocMin:
@@ -1078,56 +2052,37 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
 
 
-    case BaseDeviceHandler::VriCommand::CtlBn0On:scheduleWithSpeechCommand(command.m_command, "landing lights"); return true;
-    case BaseDeviceHandler::VriCommand::CtlBn0Of:scheduleWithSpeechCommand(command.m_command, "landing lights"); return true;
-
-    case BaseDeviceHandler::VriCommand::CtlBn1On:
-        scheduleWithSpeechCommand(command.m_command, "taxi lights",2);
+    case BaseDeviceHandler::VriCommand::CtlBn0On:        scheduleWithSpeechCommand(command.m_command, "landing lights");        return true;
+    case BaseDeviceHandler::VriCommand::CtlBn0Of:        scheduleWithSpeechCommand(command.m_command, "landing lights");         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1On:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1Of:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);     return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2On:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2Of:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3On:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3Of:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4On:        scheduleWithSpeechCommand(command.m_command, "wheel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4Of:        scheduleWithSpeechCommand(command.m_command, "weel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5On:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5Of:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn6On:
+    case BaseDeviceHandler::VriCommand::CtlBn6Of:        handleEfisControl();
         return true;
-    case BaseDeviceHandler::VriCommand::CtlBn1Of:
-        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);
-        return true;
 
-    case BaseDeviceHandler::VriCommand::CtlBn2On:scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
-    case BaseDeviceHandler::VriCommand::CtlBn2Of:scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
-
-    case BaseDeviceHandler::VriCommand::CtlBn3On:scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
-    case BaseDeviceHandler::VriCommand::CtlBn3Of:scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
-
-    case BaseDeviceHandler::VriCommand::CtlBn4On:scheduleWithSpeechCommand(command.m_command, "wheel lights"); return true;
-    case BaseDeviceHandler::VriCommand::CtlBn4Of:scheduleWithSpeechCommand(command.m_command, "weel lights"); return true;
-
-    case BaseDeviceHandler::VriCommand::CtlBn5On:scheduleWithSpeechCommand(command.m_command, "APU"); return true;
-    case BaseDeviceHandler::VriCommand::CtlBn5Of:scheduleWithSpeechCommand(command.m_command, "APU"); return true;
-
-    case BaseDeviceHandler::VriCommand::CtlBn6On:    scheduleWithSpeechCommand(command.m_command, "Landing gear");         return true;
-    case BaseDeviceHandler::VriCommand::CtlBn6Of:    scheduleWithSpeechCommand(command.m_command, "Landing gear");         return true;
 
     case BaseDeviceHandler::VriCommand::CtlBn7On:
     case BaseDeviceHandler::VriCommand::CtlBn7Of:
 
-        if (commandDefined(command.m_command)) {
-            scheduleWithSpeechCommand(command.m_command, nullptr);
-        }
-        if (speechActive) {
-            XPLMSpeakString("Speech disabled");
-            updateIdent("DSP0no");
-            updateIdent("DSP1spch");
 
-        }
-        else {
+        handleSpeech();
 
-            XPLMSpeakString("Speech enabled");
-            updateIdent("DSP0spch");
-            updateIdent("DSP1actv");
-        }
-
-        speechActive = !speechActive;
         return true;
+
+    case BaseDeviceHandler::VriCommand::FcuMach: scheduleWithSpeechCommand(command.m_command, "IAS MACH change over"); return true;
+
+        
 
     default:
         Speak("Unassigned button detected");
-
         return true;
     }
 
@@ -1136,6 +2091,691 @@ bool BaseAircraft::handleCommand(BaseDeviceHandler::VriCommandParameters command
 
 }
 
+bool BaseAircraft::handleCommandMCP2B(BaseDeviceHandler::VriCommandParameters command)
+{
+    
+
+    switch (command.m_command)
+    {
+
+    case BaseDeviceHandler::VriCommand::RADFRE_MINMIN:
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseDown);    return true;    }
+
+
+        default:
+            break;
+        }
+        return false;
+
+
+
+    case BaseDeviceHandler::VriCommand::RADFRE_MIN:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineDown);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineDown);    return true;    }
+
+        default:
+            break;
+        }
+        return false;
+
+    case BaseDeviceHandler::VriCommand::RADFRE_PLUSPLUS:
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: { scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyCourseUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyCourseUp);    return true;    }
+
+
+        default:
+            break;
+        }
+        return false;
+
+
+
+    case BaseDeviceHandler::VriCommand::RADFRE_PLUS:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com1StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Com2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Com2StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav1Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav1StbyFineUp);    return true;    }
+        case RadioDisplay::RadioMode::Nav2Standby: {     scheduleCommand(BaseDeviceHandler::VriCommand::Nav2StbyFineUp);    return true;    }
+
+        default:
+            break;
+        }
+        return false;
+
+    case BaseDeviceHandler::VriCommand::RADCOM:
+
+        // toggle
+        m_com1Active = !m_com1Active;
+
+        if (m_com1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Com1Standby;
+            selectRadio("COM 1 Selected", m_com1Stby);
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Com2Standby;
+            selectRadio("COM 2 Selected", m_com2Stby);
+        }
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADNAV:
+
+        // toggle
+        m_nav1Active = !m_nav1Active;
+
+        if (m_nav1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Nav1Standby;
+            selectRadio("Radio Navigation 1 Selected", m_nav1Stby);
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Nav2Standby;
+            selectRadio("Radio Navigation 2 Selected", m_nav1Stby);
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADDME:
+        // toggle
+        m_dme1Active = !m_dme1Active;
+
+        if (m_dme1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Dme1;
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Dme2;
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADADF:
+        // toggle
+        m_adf1Active = !m_adf1Active;
+
+        if (m_adf1Active) {
+            m_selectedRadio = RadioDisplay::RadioMode::Adf1;
+        }
+        else {
+            m_selectedRadio = RadioDisplay::RadioMode::Adf1;
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::RADTRAN:            m_selectedRadio = RadioDisplay::RadioMode::Transponder;            return true;
+    case BaseDeviceHandler::VriCommand::RADTFR:
+
+        switch (m_selectedRadio) {
+        case RadioDisplay::RadioMode::Com1Standby: {     transferRadio("COM1 exchange", m_com1Act, m_com1Stby);    return true;}
+        case RadioDisplay::RadioMode::Com2Standby: {     transferRadio("COM2 exchange", m_com2Act, m_com2Stby);    return true;}
+        case RadioDisplay::RadioMode::Nav1Standby: {     transferRadio("Radio Navigation 1 exchange", m_nav1Act, m_nav1Stby);    return true;}
+        case RadioDisplay::RadioMode::Nav2Standby: {     transferRadio("Radio Navigation 2 exchange", m_nav2Act, m_nav2Stby);    return true;}
+
+        default:
+            break;
+        }
+
+        return false;
+
+
+
+
+
+
+    case BaseDeviceHandler::VriCommand::TrnSel:        selectRadio("Transponder Selected", m_transponder);        return true;
+    case BaseDeviceHandler::VriCommand::Trns:        m_transponder->updateVri2Xp(command.m_value);        return true;
+
+    case BaseDeviceHandler::VriCommand::TrnAux:
+        scheduleCommand(BaseDeviceHandler::VriCommand::TrnAux);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::Trnx:
+        scheduleCommand(BaseDeviceHandler::VriCommand::Trnx);
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::AplAtPlus:
+
+        Speak("Auto Throttle Enabled");
+        setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplAtMin:
+
+        Speak("Auto Throttle Disabled");
+        setDatai(BaseDeviceHandler::VriDataRef::DR_AutoThrottle, 0);
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplFdPlus:
+
+        if (efisCaptainControl) {
+
+            Speak("Captain Flight Director Enabled");
+
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 1);
+            return true;
+        }
+
+
+        Speak("First Officer Flight Director Enabled");
+
+        setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplFdMin:
+
+        if (efisCaptainControl) {
+
+            Speak("Captain Flight Director Disabled");
+
+            setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirector, 0);
+            return true;
+        }
+
+        Speak("First Officer Flight Director Disabled");
+
+        setDatai(BaseDeviceHandler::VriDataRef::DR_FlightDirectorFo, 0);
+        return true;
+
+
+        // reverse
+    case BaseDeviceHandler::VriCommand::AplMastPlus:
+
+        if (getDatai(BaseDeviceHandler::VriDataRef::DR_ApMaster, -1) != 0) {
+            scheduleWithSpeechCommand(command.m_command, "Autopilot Master Disabled");
+        }
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplMastMin: // is disable
+
+        if (getDatai(BaseDeviceHandler::VriDataRef::DR_ApMaster, -1) != 1) {
+            scheduleWithSpeechCommand(command.m_command, "Autopilot Master Enabled");
+        }
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::HdgSelPlus:
+        Speak("BankAngle Selected");
+        hdgUpperSelected = true;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgSelMin:
+        Speak("Heading Selected");
+        hdgUpperSelected = false;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgXXXPlus:
+        if (hdgUpperSelected) {
+            return  handleBankAngle(true, BaseDeviceHandler::VriDataRef::DR_BankAngle);
+        }
+
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgXXXMin:
+        if (hdgUpperSelected) {
+            return  handleBankAngle(false, BaseDeviceHandler::VriDataRef::DR_BankAngle);
+        }
+
+        scheduleCommand(command.m_command);
+        return true;
+
+        // MIN
+
+    case BaseDeviceHandler::VriCommand::MinSelPlus:
+
+        if (checkFastToggle("MinSelPlus", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
+            return true;
+        }
+
+
+        Speak("Minimums Upper Selected");
+        minUpperSelected = true;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinSelMin:
+
+        if (checkFastToggle("MinSelMin", minSelectedMs, 400)) {
+            toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
+            return true;
+        }
+
+        Speak("Minimums Lower Selected");
+
+        minUpperSelected = false;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinPlus:
+
+        if (minUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperPlus, BaseDeviceHandler::VriCommand::vMinUpperPlusFo, "");
+            return true;
+
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerPlus, BaseDeviceHandler::VriCommand::vMinLowerPlusFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::MinMin:
+
+        if (minUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinUpperMin, BaseDeviceHandler::VriCommand::vMinUpperMinFo, "");
+            return true;
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vMinLowerMin, BaseDeviceHandler::VriCommand::vMinLowerMinFo, "");
+        return true;
+
+
+        // BARO
+    case BaseDeviceHandler::VriCommand::BarSelPlus:
+        if (checkFastToggle("BarSelPlus", baroSelectedMs, 400)) {
+
+            toggleBarStdorOff(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd);
+            return true;
+        }
+
+        Speak("Baro Upper Selected");
+        baroUpperSelected = true;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::BarSelMin:
+
+        if (checkFastToggle("BarSelMin", baroSelectedMs, 400)) {
+
+            toggleBarStdorOff(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStd);
+            return true;
+        }
+
+        Speak("Baro Lower Selected");
+        baroUpperSelected = false;
+        return true;
+
+    case BaseDeviceHandler::VriCommand::BarPlus:
+
+        if (baroUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperPlus, BaseDeviceHandler::VriCommand::vBarUpperPlusFo, "");
+            return true;
+
+        }
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerPlus, BaseDeviceHandler::VriCommand::vBarLowerPlusFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::BarMin:
+
+        if (baroUpperSelected) {
+            scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarUpperMin, BaseDeviceHandler::VriCommand::vBarUpperMinFo, "");
+            return true;
+        }
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::vBarLowerMin, BaseDeviceHandler::VriCommand::vBarLowerMinFo, "");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdrSelMin:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelMin, BaseDeviceHandler::VriCommand::NdrSelMinFo, "TFC Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdrSelPlus:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdrSelPlus, BaseDeviceHandler::VriCommand::NdrSelPlusFo, "TFC Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdrMin:
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrMin,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrMinFo);
+
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdrPlus:
+
+
+        setMapRange(BaseDeviceHandler::VriDataRef::DR_MapRange,
+            BaseDeviceHandler::VriCommand::NdrPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapRangeFo,
+            BaseDeviceHandler::VriCommand::NdrPlusFo);
+
+
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmSelMin: //CTR
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelMin, BaseDeviceHandler::VriCommand::NdmSelMinFo, "CTR Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmSelPlus:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::NdmSelPlus, BaseDeviceHandler::VriCommand::NdmSelPlusFo, "CTR Selected");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::NdmPlus:
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmPlus,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmPlusFo);
+
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::NdmMin:
+
+        setMapMode(BaseDeviceHandler::VriDataRef::DR_MapMode,
+            BaseDeviceHandler::VriCommand::NdmMin,
+            BaseDeviceHandler::VriDataRef::DR_MapModeFo,
+            BaseDeviceHandler::VriCommand::NdmMinFo);
+
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::EfiVor1:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiVor1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor1Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiAdf1:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor1Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf1,
+            BaseDeviceHandler::VriDataRef::DR_Vor1PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf1Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiVor2:
+        setEfiVor(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiVor2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiVor2Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiAdf2:
+        setEfiAdf(BaseDeviceHandler::VriDataRef::DR_Vor2Pos,
+            BaseDeviceHandler::VriCommand::EfiAdf2,
+            BaseDeviceHandler::VriDataRef::DR_Vor2PosFo,
+            BaseDeviceHandler::VriCommand::EfiAdf2Fo);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplTogaPlus:    scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
+    case BaseDeviceHandler::VriCommand::AplTogaMin:        scheduleWithSpeechCommand(command.m_command, "Left Take Off And Go Arround");    return true;
+
+    case BaseDeviceHandler::VriCommand::AplTogbPlus:    scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
+    case BaseDeviceHandler::VriCommand::AplTogbMin:        scheduleWithSpeechCommand(command.m_command, "Right Take Off And Go Arround");    return true;
+
+    case BaseDeviceHandler::VriCommand::OBSPlus:        setCourse(BaseDeviceHandler::VriCommand::OBSPlus, BaseDeviceHandler::VriCommand::OBSPlusFo);         return true;
+    case BaseDeviceHandler::VriCommand::OBSMin:            setCourse(BaseDeviceHandler::VriCommand::OBSMin, BaseDeviceHandler::VriCommand::OBSMinFo);         return true;
+
+    case BaseDeviceHandler::VriCommand::OBSSelPlus:        syncCourse();return true;
+    case BaseDeviceHandler::VriCommand::OBSSelMin:        syncCourse();return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiMtr:
+
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiMtr, BaseDeviceHandler::VriCommand::EfiMtrFo, "Meters");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiFpv:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiFpv, BaseDeviceHandler::VriCommand::EfiFpvFo, "flight path vector");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWx:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWx, BaseDeviceHandler::VriCommand::EfiWxFo, "Weather");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiSta:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiSta, BaseDeviceHandler::VriCommand::EfiStaFo, "Station");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiWpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiWpt, BaseDeviceHandler::VriCommand::EfiWptFo, "Waypoints");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiArpt:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiArpt, BaseDeviceHandler::VriCommand::EfiArptFo, "Airports");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::EfiData:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiData, BaseDeviceHandler::VriCommand::EfiDataFo, "Data");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiPos:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiPos, BaseDeviceHandler::VriCommand::EfiPosFo, "Position");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::EfiTerr:
+        scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand::EfiTerr, BaseDeviceHandler::VriCommand::EfiTerrFo, "Terrain");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdSelPlus: syncAirSpeed();        return true;
+    case BaseDeviceHandler::VriCommand::SpdSelMin:  syncAirSpeed();        return true;
+
+        // speed
+    case BaseDeviceHandler::VriCommand::SpdXXXPlus:
+    case BaseDeviceHandler::VriCommand::SpdXXXMin:
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdN1Plus:
+    case BaseDeviceHandler::VriCommand::SpdN1Min:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdN1, command.m_command, "N1 Select", "DSP0N1  ", NO_IDENT1);
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::SpdSpdPlus:
+    case BaseDeviceHandler::VriCommand::SpdSpdMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdSpd, command.m_command, "Speed Select", "DSP0SPD ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::SpdLvlPlus:
+    case BaseDeviceHandler::VriCommand::SpdLvlMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_SpdLvl, command.m_command, "FlightLevel change", "DSP0FLCH", NO_IDENT1);
+        return true;
+
+        // heading
+
+    case BaseDeviceHandler::VriCommand::HdgHdgPlus:
+    case BaseDeviceHandler::VriCommand::HdgHdgMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_HdgHdg, command.m_command, "Heading Select", "DSP0HDG ", "DSP1SEL ");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::HdgHldPlus:
+    case BaseDeviceHandler::VriCommand::HdgHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_HdgHld, command.m_command, "Heading Hold Select", "DSP0HDG ", "DSP1HLD ");
+        return true;
+
+        // altitude
+    case BaseDeviceHandler::VriCommand::AltXXXPlus:
+    case BaseDeviceHandler::VriCommand::AltXXXMin:
+        scheduleCommand(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AltHldPlus:
+    case BaseDeviceHandler::VriCommand::AltHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AltHld, command.m_command, "Altitude Hold Select", "DSP0ALT ", "DSP1HLD ");
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AltSelPlus:        syncAltitude(); return true;
+    case BaseDeviceHandler::VriCommand::AltSelMin:        syncAltitude(); return true;
+
+        //vvs
+    case BaseDeviceHandler::VriCommand::VvsPlus:
+    case BaseDeviceHandler::VriCommand::VvsMin:
+        setVvs(command.m_command);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::VvsSelPlus:
+    case BaseDeviceHandler::VriCommand::VvsSelMin:
+        resetVvs();
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::VvsHldPlus:
+    case BaseDeviceHandler::VriCommand::VvsHldMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_VvsHld, command.m_command, "Vertical Speed Select", "DSP0V/S ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplVnavPlus:
+    case BaseDeviceHandler::VriCommand::AplVnavMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplVnav, command.m_command, "VNAV", "DSP0VNAV", NO_IDENT1);
+
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplLnavPlus:
+    case BaseDeviceHandler::VriCommand::AplLnavMin:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplLnav, command.m_command, "LNAV", "DSP0LNAV", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdAMin:
+    case BaseDeviceHandler::VriCommand::AplCmdAPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdA, command.m_command, "Command A", "DSP0CMDA", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdBMin:
+    case BaseDeviceHandler::VriCommand::AplCmdBPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdB, command.m_command, "Command B", "DSP0CMDB", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdCMin:
+
+        if (commandDefined(command.m_command)) {
+            scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
+            return true;
+        }
+        setLights(lightMode);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCmdCPlus:
+
+        if (commandDefined(command.m_command)) {
+            scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplCmdC, command.m_command, "Command C", "DSP0CMDC", NO_IDENT1);
+            return true;
+        }
+        setLights(lightMode);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplLocMin:
+    case BaseDeviceHandler::VriCommand::AplLocPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplLoc, command.m_command, "LOC", "DSP0LOC ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCwsAMin:
+    case BaseDeviceHandler::VriCommand::AplCwsAPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_CwsA, command.m_command, "CWS A", "DSP0CWSA ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplCwsBMin:
+    case BaseDeviceHandler::VriCommand::AplCwsBPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_CwsB, command.m_command, "CWS B", "DSP0CWSB ", NO_IDENT1);
+        return true;
+
+    case BaseDeviceHandler::VriCommand::AplAppMin:
+    case BaseDeviceHandler::VriCommand::AplAppPlus:
+        scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRef::DR_AplApp, command.m_command, "Approach", "DSP0APP ", NO_IDENT1);
+        return true;
+
+
+
+    case BaseDeviceHandler::VriCommand::CtlBn0On:        scheduleWithSpeechCommand(command.m_command, "landing lights");        return true;
+    case BaseDeviceHandler::VriCommand::CtlBn0Of:        scheduleWithSpeechCommand(command.m_command, "landing lights");         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1On:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);         return true;
+    case BaseDeviceHandler::VriCommand::CtlBn1Of:        scheduleWithSpeechCommand(command.m_command, "taxi lights", 2);     return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2On:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn2Of:        scheduleWithSpeechCommand(command.m_command, "logo lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3On:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn3Of:        scheduleWithSpeechCommand(command.m_command, "wing lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4On:        scheduleWithSpeechCommand(command.m_command, "wheel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn4Of:        scheduleWithSpeechCommand(command.m_command, "weel lights"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5On:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn5Of:        scheduleWithSpeechCommand(command.m_command, "APU"); return true;
+    case BaseDeviceHandler::VriCommand::CtlBn6On:
+    case BaseDeviceHandler::VriCommand::CtlBn6Of:        handleEfisControl();
+        //scheduleWithSpeechCommand(command.m_command, "Landing gear");
+        return true;
+
+
+    case BaseDeviceHandler::VriCommand::CtlBn7On:
+    case BaseDeviceHandler::VriCommand::CtlBn7Of:
+
+
+        handleSpeech();
+
+        return true;
+
+    default:
+        Speak("Unassigned button detected");
+        return true;
+    }
+
+    return true;
+
+
+}
+
+void BaseAircraft::handleEfisControl() {
+
+    VLLog("handleEfisControl: before efisCaptainControl=%d", efisCaptainControl);
+
+    efisCaptainControl = !efisCaptainControl;
+
+    VLLog("handleEfisControl: after efisCaptainControl=%d", efisCaptainControl);
+
+    if (efisCaptainControl) {
+        Speak("Captain has Electronic Flight Instrument System control");
+        updateIdent("DSP0EFIS");
+        updateIdent("DSP1CAPT");
+
+    }
+    else {
+
+        Speak("First Officer has Electronic Flight Instrument System control");
+        updateIdent("DSP0EFIS");
+        updateIdent("DSP1 FO ");
+    }
+
+}
+void BaseAircraft::handleSpeech() {
+
+    speechActive = !speechActive;
+
+    if (!speechActive) {
+        XPLMSpeakString("Speech disabled");
+        updateIdent("DSP0no");
+        updateIdent("DSP1spch");
+
+    }
+    else {
+
+        XPLMSpeakString("Speech enabled");
+        updateIdent("DSP0spch");
+        updateIdent("DSP1actv");
+    }
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
+
+}
 void BaseAircraft::selectRadio(const char* radio, RadioDisplay* stby) {
 
     m_radioMode = stby->getRadioMode();
@@ -1190,39 +2830,49 @@ bool BaseAircraft::dataRefDefined(BaseDeviceHandler::VriDataRef vriDataRef) {
 
 }
 
-bool BaseAircraft::handleBankAngle(BaseDeviceHandler::VriCommand command) {
+bool BaseAircraft::handleBankAngle(bool up, BaseDeviceHandler::VriDataRef vriDataRef) {
 
-    if (command == BaseDeviceHandler::VriCommand::HdgXXXPlus) {
+    int bankAngle = getDatai(BaseDeviceHandler::VriDataRef::DR_BankAngle, -1);
+
+    if (up) {
+
         // BANK ANGLE        0 - 10deg, 1 - 15deg, 2 - 20deg, 3 - 25deg, 4 - 30deg
 
-        if (bankAngle < 4) {
-            bankAngle++;
-            setDatai(BaseDeviceHandler::VriDataRef::DR_BankAngle, bankAngle);
+        if (bankAngle >= 4) {
+            return false;
         }
 
-    }
-    else {
-        if (bankAngle > 0) {
-            bankAngle--;
-            setDatai(BaseDeviceHandler::VriDataRef::DR_BankAngle, bankAngle);
-        }
+        bankAngle++;
+        setDatai(vriDataRef, bankAngle);
+        showBankAngle(bankAngle);
+        return true;
 
 
     }
-    bankAngle = updateBankAngle();
+
+    if (bankAngle <= 0) {
+        return false;
+    }
+
+    bankAngle--;
+
+    setDatai(vriDataRef, bankAngle);
+
+    showBankAngle(bankAngle);
 
     return true;
 }
 
-int BaseAircraft::updateBankAngle()
-    {
+void BaseAircraft::showBankAngle(int bankAngle)
+{
 
 
-    int value = getDatai(BaseDeviceHandler::VriDataRef::DR_BankAngle, -1);
 
     updateIdent("DSP0BANK");
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
 
-    switch (value) {
+
+    switch (bankAngle) {
     case 0:        Speak("BankAngle 10 degrees");        updateIdent("DSP110dg");        break;
     case 1:        Speak("BankAngle 15 degrees");        updateIdent("DSP115dg");        break;
     case 2:        Speak("BankAngle 20 degrees");        updateIdent("DSP120dg");        break;
@@ -1234,10 +2884,9 @@ int BaseAircraft::updateBankAngle()
 
     m_speed->updateDisplay();
 
-    
-    return value;
 
-    
+
+
 }
 
 bool BaseAircraft::scheduleCommand(BaseDeviceHandler::VriCommand VriCommand, int repeat)
@@ -1274,15 +2923,30 @@ bool BaseAircraft::scheduleCommand(BaseDeviceHandler::VriCommand VriCommand, int
 
 }
 
-void BaseAircraft::setEfiAdf(BaseDeviceHandler::VriDataRef vriDataRef, BaseDeviceHandler::VriCommand VriCommand) {
+void BaseAircraft::setEfiAdf(
+    BaseDeviceHandler::VriDataRef vriDataRefCapt,
+    BaseDeviceHandler::VriCommand VriCommandCapt,
+    BaseDeviceHandler::VriDataRef vriDataRefFo,
+    BaseDeviceHandler::VriCommand VriCommandFo) {
 
-    scheduleCommand(VriCommand);
+    int status = 0;
+    if (efisCaptainControl) {
 
-    int status = getDatai(vriDataRef, 0);
+        scheduleCommand(VriCommandCapt);
+
+        status = getDatai(vriDataRefCapt, 0);
+    }
+    else {
+        scheduleCommand(VriCommandFo);
+
+        status = getDatai(vriDataRefFo, 0);
+    }
+
+
 
     switch (status) {
     case 0: Speak("Adf selected");
-        
+
         break;
     case 1: Speak("VOR deselected"); break;
     case -1://already selected
@@ -1295,9 +2959,23 @@ void BaseAircraft::setEfiAdf(BaseDeviceHandler::VriDataRef vriDataRef, BaseDevic
 
 }
 
-void BaseAircraft::setEfiVor(BaseDeviceHandler::VriDataRef vriDataRef, BaseDeviceHandler::VriCommand VriCommand) {
 
-    int status = getDatai(vriDataRef, 0);
+
+void BaseAircraft::setEfiVor(
+    BaseDeviceHandler::VriDataRef vriDataRefCapt,
+    BaseDeviceHandler::VriCommand VriCommandCapt,
+    BaseDeviceHandler::VriDataRef vriDataRefFo,
+    BaseDeviceHandler::VriCommand VriCommandFo
+) {
+    int status = 0;
+    if (efisCaptainControl) {
+
+        status = getDatai(vriDataRefCapt, 0);
+    }
+    else {
+        status = getDatai(vriDataRefFo, 0);
+
+    }
 
     switch (status) {
     case 0: Speak("VOR selected"); break;
@@ -1308,8 +2986,12 @@ void BaseAircraft::setEfiVor(BaseDeviceHandler::VriDataRef vriDataRef, BaseDevic
     default:
         break;
     }
+    if (efisCaptainControl) {
 
-    scheduleCommand(VriCommand);
+        scheduleCommand(VriCommandCapt);
+        return;
+    }
+    scheduleCommand(VriCommandFo);
 
 }
 
@@ -1319,27 +3001,30 @@ void BaseAircraft::resetVvs() {
 
     setDataf(BaseDeviceHandler::VriDataRef::DR_Vvs, 0);
 
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
+
+
     updateIdent("DSP0VS R");
     updateIdent("DSP1ESET");
 
 }
 
 void BaseAircraft::displayVvs() {
-    
+
     std::this_thread::sleep_for(std::chrono::milliseconds(25));
 
     float vvs = getDataf(BaseDeviceHandler::VriDataRef::DR_Vvs, 0);
     char command[MAX_DISPLAY]{ 0 };
-    
+
 
     if (vvs < 0) {
         updateIdent("DSP0VSdn");
-        sprintf(command, "DSP1%04d", (int) -vvs);
+        snprintf(command, MAX_DISPLAY, "DSP1%04d",  (int)-vvs);
 
     }
     else {
         updateIdent("DSP0VSup");
-        sprintf(command, "DSP1%04d", (int) vvs);
+        snprintf(command, MAX_DISPLAY, "DSP1%04d", (int)vvs);
 
     }
     updateIdent(command);
@@ -1350,34 +3035,188 @@ void BaseAircraft::displayVvs() {
 void BaseAircraft::setVvs(BaseDeviceHandler::VriCommand VriCommand) {
     scheduleCommand(VriCommand);
     displayVvs();
-    
+
 }
 void BaseAircraft::syncCourse() {
-    
 
-    float course = m_heading->getActualXpValue();
-    VLLog("syncCourse: %3.f", course);
-    setDataf(BaseDeviceHandler::VriDataRef::DR_CoursePilot, course);
-    Speak("Course Pilot synced to heading ");
-    char command[MAX_DISPLAY]{ 0 };
-    sprintf(command, "DSP1 %03d", (int)course);
+
+    float course = getDataf(BaseDeviceHandler::VriDataRef::DR_CurrentHeading, 0);
+
+    VLTrace2("syncCourse: %f", course);
 
     updateIdent("DSP0CRS ");
-    updateIdent(command);
+    updateIdent("DSP1SYNC");
+
+    Speak("Autopilot course synced to current heading");
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+    if (efisCaptainControl) {
+        setDataf(BaseDeviceHandler::VriDataRef::DR_CoursePilot, course);
+        return;
+    }
+    setDataf(BaseDeviceHandler::VriDataRef::DR_CoursePilotFo, course);
+
+
+
+}
+void BaseAircraft::syncAirSpeed() {
+
+
+    float airspeed = getDataf(BaseDeviceHandler::VriDataRef::DR_CurrentAirspeed, 0);
+
+    VLTrace2("syncAirSpeed: %f", airspeed);
+
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_Spd;
+
+    updateIdent("DSP0SPD ");
+    updateIdent("DSP1SYNC");
+
+    Speak("Autopilot speed synced to current airspeed ");
+
+
+    setDataf(BaseDeviceHandler::VriDataRef::DR_SetAirspeed, airspeed);
+
+}
+
+void BaseAircraft::getYokePriority() {
+
+    yokePriority = getDatai(BaseDeviceHandler::VriDataRef::DR_Priority, 0);
+    updateIdent("DSP0CTRL");
+
+    switch (yokePriority) {
+    case 0:
+        updateIdent("DSP1NORM");
+        Speak("Control set to normal");
+
+        break;
+
+    case 1:
+        updateIdent("DSP1CAPT");
+        Speak("Captain has control");
+
+        break;
+
+    case 2:
+        updateIdent("DSP1COPL");
+        Speak("Copilot has control");
+
+        break;
+
+    default:
+        break;
+    }
+}
+
+void BaseAircraft::handleYokePriority() {
+
+    yokePriority++;
+
+    if (yokePriority > 2) {
+        yokePriority = 0;
+    }
+
+    setDatai(BaseDeviceHandler::VriDataRef::DR_Priority, yokePriority);
+
+    VLTrace2("setPriority: %f", yokePriority);
+
+
+    getYokePriority();
+
+
+}
+
+void BaseAircraft::syncIdentDisplay() {
+
+    char display[MAX_DISPLAY]{ 0 };
+
+    if (identDisplayMode == BaseDeviceHandler::IdentDisplayMode::Id_None) {
+        return;
+    }
+    if (updateIdentDisplay++ < 10)
+    {
+        return;
+    }
+    updateIdentDisplay = 0;
+
+    switch (identDisplayMode) {
+    case BaseDeviceHandler::IdentDisplayMode::Id_Alt: {
+        float altitude = getDataf(BaseDeviceHandler::VriDataRef::DR_CurrentAltitude, 0);
+
+        updateIdent("DSP0cAlt");
+
+        int data = (int)(altitude);
+        snprintf(display, MAX_DISPLAY,"DSP1%04d", data);
+        updateIdent(display);
+    }
+                                                    break;
+
+    case BaseDeviceHandler::IdentDisplayMode::Id_Spd:
+    {
+        float speed = getDataf(BaseDeviceHandler::VriDataRef::DR_CurrentAirspeed, 0);
+        updateIdent("DSP0cSpd");
+
+        int data1 = (int)(speed);
+        snprintf(display, MAX_DISPLAY, "DSP1%04d", data1);
+        updateIdent(display);}
+    break;
+    case BaseDeviceHandler::IdentDisplayMode::Id_Hdg: {
+
+        float course = getDataf(BaseDeviceHandler::VriDataRef::DR_Course, 0);
+        updateIdent("DSP0cHdg");
+
+        int data2 = (int)(course);
+        snprintf(display, MAX_DISPLAY, "DSP1 %03d", data2);
+        updateIdent(display);
+    }
+    break;
+
+    default:
+        break;
+    }
 }
 
 
-void BaseAircraft::setCourse(BaseDeviceHandler::VriCommand vriCommand) {
 
-    scheduleCommand(vriCommand);
+void BaseAircraft::syncAltitude() {
+
+
+    float altitude = getDataf(BaseDeviceHandler::VriDataRef::DR_CurrentAltitude, 0);
+    VLTrace2("syncAltitude: %f", altitude);
+
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_Alt;
+
+
+    updateIdent("DSP0ALT ");
+    updateIdent("DSP1SYNC");
+
+    Speak("Autopilot altitude synced to current altitude");
+
+
+    setDataf(BaseDeviceHandler::VriDataRef::DR_SetAltitude, altitude);
+
+}
+
+void BaseAircraft::setCourse(BaseDeviceHandler::VriCommand vriCommandCapt, BaseDeviceHandler::VriCommand vriCommandFo) {
+
+    if (efisCaptainControl) {
+        scheduleCommand(vriCommandCapt);
+    }
+    else {
+        scheduleCommand(vriCommandFo);
+
+    }
 
 
     bool ret = dataRefDefined(BaseDeviceHandler::VriDataRef::DR_Course);
 
     if (ret) {
+
+        identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_Hdg;
+
         float course = getDataf(BaseDeviceHandler::VriDataRef::DR_Course, 0);
 
-        switch (vriCommand) {
+        switch (vriCommandCapt) {
         case BaseDeviceHandler::VriCommand::OBSPlus:
             course++;
             if (course > 359) {
@@ -1397,11 +3236,11 @@ void BaseAircraft::setCourse(BaseDeviceHandler::VriCommand vriCommand) {
 
         }
 
-        char command[MAX_DISPLAY]{ 0 };
-        sprintf(command, "DSP1 %03d", (int) course);
 
         updateIdent("DSP0CRS ");
-        updateIdent(command);
+        updateIdent("DSP1SYNC");
+
+
     }
 
 
@@ -1413,17 +3252,28 @@ void BaseAircraft::setCourse(BaseDeviceHandler::VriCommand vriCommand) {
 
 
 
-void BaseAircraft::setMapMode(BaseDeviceHandler::VriCommand VriCommand) {
+void BaseAircraft::setMapMode(
+    BaseDeviceHandler::VriDataRef datarefCapt,
+    BaseDeviceHandler::VriCommand VriCommandCapt,
+    BaseDeviceHandler::VriDataRef datarefFo,
+    BaseDeviceHandler::VriCommand VriCommandFo
+) {
 
+    int status = 0;
+    if (efisCaptainControl) {
 
+        scheduleCommand(VriCommandCapt);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-    scheduleCommand(VriCommand);
+        status = getDatai(datarefCapt, 0);
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+    else {
+        scheduleCommand(VriCommandFo);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
-
-    int status = getDatai(BaseDeviceHandler::VriDataRef::DR_MapMode, 0);
-
+        status = getDatai(datarefFo, 0);
+    }
 
     // Map mode. 0 = approach, 1 = vor, 2 = map, 3 = nav, 4 = plan"
     switch (status) {
@@ -1439,14 +3289,28 @@ void BaseAircraft::setMapMode(BaseDeviceHandler::VriCommand VriCommand) {
 
 }
 
-void BaseAircraft::setMapRange(BaseDeviceHandler::VriCommand VriCommand) {
+void BaseAircraft::setMapRange(
+    BaseDeviceHandler::VriDataRef datarefCapt,
+    BaseDeviceHandler::VriCommand VriCommandCapt,
+    BaseDeviceHandler::VriDataRef datarefFo,
+    BaseDeviceHandler::VriCommand VriCommandFo
+) {
 
-    scheduleCommand(VriCommand);
+    int status = 0;
+    if (efisCaptainControl) {
 
-    std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        scheduleCommand(VriCommandCapt);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+        status = getDatai(datarefCapt, 0);
 
-    int status = getDatai(BaseDeviceHandler::VriDataRef::DR_MapRange, 0);
+    }
+    else {
+        scheduleCommand(VriCommandFo);
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+        status = getDatai(datarefFo, 0);
+    }
 
     switch (status) {
     case 0: Speak("Map Range 5 selected");        break;
@@ -1467,66 +3331,106 @@ void BaseAircraft::setMapRange(BaseDeviceHandler::VriCommand VriCommand) {
 
 }
 
+void BaseAircraft::toggleBaroStdCommand() {
+    toggleBarStdorOff(BaseDeviceHandler::VriDataRef::DR_BarStd, BaseDeviceHandler::VriDataRef::DR_BarStdFo);
+}
+void BaseAircraft::toggleMinimumsCommand() {
 
-void BaseAircraft::setLights() {
+    toggleMinimumsMode(BaseDeviceHandler::VriDataRef::DR_Minimums, BaseDeviceHandler::VriDataRef::DR_MinimumsFo);
+}
+
+void BaseAircraft::handleCockpitLights() {
+    setLights(lightMode);
+}
+
+void BaseAircraft::setLights(int requestLightMode) {
+
+    float lvl = 1;
+
+    lightMode = requestLightMode;
+
     switch (lightMode) {
-    case 0:
-        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeOn, "dome light on", 2);
+    case 0: // dim
+        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeUp, "dome light dim", 3);
         updateIdent("DSP0DOME");
-        updateIdent("DSP1 on ");
+        updateIdent("DSP1 dim");
         break;
 
-    case 1:
-        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeOff, "dome light off", 2);
+    case 1: // off
+        scheduleCommand(BaseDeviceHandler::VriCommand::AplDomeUp, 3);
+
+        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeDown, "dome light off", 1);
         updateIdent("DSP0DOME");
         updateIdent("DSP1 off");
         break;
 
     case 2:
-        setPanelLight(1, 1, 1, 1);
-        setGenericLight(1, 1, 1, 1, 1,1);
-        updateIdent("DSP0Lght");
-        updateIdent("DSP1   1");
-        Speak("Light Mode 1");
+        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeDown, "dome light bright", 2);
+        updateIdent("DSP0DOME");
+        updateIdent("DSP1brig");
         break;
 
     case 3:
-        setPanelLight(1, 1, 1, 1);
-        setGenericLight(0.5, 0.5, 0.5, 0.5, 0.5, 0.5);
-        updateIdent("DSP0Lght");
-        updateIdent("DSP1   2");
-        Speak("Light Mode 2");
-        break;
 
-    case 4:
+        scheduleCommand(BaseDeviceHandler::VriCommand::AplDomeUp, 3);
+        scheduleCommand(BaseDeviceHandler::VriCommand::AplDomeDown, 2);
+
+        scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand::AplDomeUp, "dome light off", 1);
         setPanelLight(1, 1, 1, 1);
-        setGenericLight(0, 0, 0, 0, 0, 0);
+        setGenericLight(1, 1, 1, 1, 1, 1);
+
         updateIdent("DSP0Lght");
         updateIdent("DSP1   3");
         Speak("Light Mode 3");
         break;
 
-    case 5:
-        setPanelLight(0.5, 0.5, 0.5, 0.5);
-        setGenericLight(0, 0, 0, 0, 0, 0);
-        updateIdent("DSP0Lght");
-        updateIdent("DSP1   4");
-        Speak("Light Mode 4");
 
+    case 4:
+
+        setPanelLight(lvl, lvl, lvl, lvl);
+        setGenericLight(lvl, lvl, lvl, lvl, lvl, lvl);
+
+        updateIdent("DSP0Lght");
+        updateIdent("DSP1 100");
+        Speak("Light Mode 100%");
+        break;
+
+    case 5:
+
+        lvl = 0.75;
+        setPanelLight(lvl, lvl, lvl, lvl);
+        setGenericLight(lvl, lvl, lvl, lvl, lvl, lvl);
+
+        updateIdent("DSP0Lght");
+        updateIdent("DSP1  75");
+        Speak("Light Mode 75%");
         break;
 
     case 6:
-        setPanelLight(0.5, 0.5, 0.5, 0.5);
-        setGenericLight(0.2, 0.2, 0.0, 0.2, 0.2, 0.2);
-        updateIdent("DSP0Lght");
-        updateIdent("DSP1   5");
-        Speak("Light Mode 5");
+        lvl = 0.5;
+        setPanelLight(lvl, lvl, lvl, lvl);
+        setGenericLight(lvl, lvl, lvl, lvl, lvl, lvl);
 
+        updateIdent("DSP0Lght");
+        updateIdent("DSP1  50");
+        Speak("Light Mode 50%");
         break;
 
+    case 7:
+        lvl = 0.25;
+        setPanelLight(lvl, lvl, lvl, lvl);
+        setGenericLight(lvl, lvl, lvl, lvl, lvl, lvl);
+
+        updateIdent("DSP0Lght");
+        updateIdent("DSP1  25");
+        Speak("Light Mode 25%");
+        break;
+
+
     default:
+        setGenericLight(0, 0, 0, 0, 0, 0);
         setPanelLight(0, 0, 0, 0);
-        setGenericLight(0, 0, 0, 1, 0, 0);
+
         lightMode = 0;
         updateIdent(NO_IDENT0);
         updateIdent(NO_IDENT1);
@@ -1535,6 +3439,8 @@ void BaseAircraft::setLights() {
         return;
 
     }
+
+    identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
 
     lightMode++;
 }
@@ -1551,6 +3457,37 @@ void BaseAircraft::Speak(const char* speech) {
     XPLMSpeakString(speech);
 
 }
+bool BaseAircraft::scheduleCaptOrFoCommandBasedOnStatus(BaseDeviceHandler::VriDataRef vriDataRefCapt,
+    BaseDeviceHandler::VriCommand vriCommandCapt,
+    BaseDeviceHandler::VriDataRef vriDataRefFo, BaseDeviceHandler::VriCommand vriCommandFo, int status, const char* speech)
+{
+    if (efisCaptainControl) {
+
+
+        if (getDatai(vriDataRefCapt, -1) != status) {
+            return scheduleWithSpeechCommand(vriCommandCapt, speech);
+        }
+    }
+
+    if (getDatai(vriDataRefFo, -1) != status) {
+        return scheduleWithSpeechCommand(vriCommandFo, speech);
+    }
+    return false;
+}
+bool BaseAircraft::scheduleCaptOrFoCommand(BaseDeviceHandler::VriCommand vriCommandCapt, BaseDeviceHandler::VriCommand vriCommandFo, const char* speech)
+{
+
+
+    if (efisCaptainControl) {
+        return scheduleWithSpeechCommand(vriCommandCapt, speech);
+    }
+
+    return scheduleWithSpeechCommand(vriCommandFo, speech);
+
+
+
+}
+
 bool BaseAircraft::scheduleWithSpeechCommand(BaseDeviceHandler::VriCommand VriCommand, const char* speech, int repeat)
 {
     if (VriCommand == BaseDeviceHandler::VriCommand::None) {
@@ -1575,22 +3512,25 @@ bool BaseAircraft::scheduleButtonCommandWithDisplay(BaseDeviceHandler::VriDataRe
 
 
     if (speechActive) {
-        char message[64];
+        char message[MAX_MESSAGE]{0};
 
         int status = getDatai(vriDataRef, -1);
 
 
         if (status != 1) {
-            sprintf(message, "%s %s", speech, "activated");
+            snprintf(message, MAX_MESSAGE, "%s %s", speech, "activated");
             updateIdent(ident0);
             updateIdent(ident1);
 
         }
         else {
-            sprintf(message, "%s %s", speech, "deactivated");
+            snprintf(message, MAX_MESSAGE,"%s %s", speech, "deactivated");
             updateIdent("DSP0    ");
             updateIdent(NO_IDENT1);
         }
+
+        identDisplayMode = BaseDeviceHandler::IdentDisplayMode::Id_None;
+
 
         Speak(message);
     }
@@ -1609,16 +3549,16 @@ bool BaseAircraft::scheduleButtonCommand(BaseDeviceHandler::VriDataRef vriDataRe
 
 
     if (speechActive) {
-        char message[64];
+        char message[MAX_MESSAGE]{0};
 
         int status = getDatai(vriDataRef, -1);
 
 
         if (status != 1) {
-            sprintf(message, "%s %s", speech, "activated");
+            snprintf(message, MAX_MESSAGE, "%s %s", speech, "activated");
         }
         else {
-            sprintf(message, "%s %s", speech, "deactivated");
+            snprintf(message, MAX_MESSAGE, "%s %s", speech, "deactivated");
         }
 
         Speak(message);
@@ -1660,6 +3600,8 @@ bool BaseAircraft::getXPLMDataRef(BaseDeviceHandler::VriDataRef vriDataRef, XPLM
     if (drMap.count(vriDataRef) != 0)
     {
         result = drMap[vriDataRef];
+
+
         return true;
     }
 
@@ -1688,6 +3630,29 @@ void BaseAircraft::setDataf(BaseDeviceHandler::VriDataRef vriDataRef, float valu
     }
 
     XPLMSetDataf(ref, value);
+
+}
+
+double BaseAircraft::getDatad(BaseDeviceHandler::VriDataRef vriDataRef, float defValue) {
+
+    XPLMDataRef ref;
+    bool ret = getXPLMDataRef(vriDataRef, ref);
+    if (!ret) {
+        return defValue;
+    }
+
+    return XPLMGetDatad(ref);
+
+}
+void BaseAircraft::setDatad(BaseDeviceHandler::VriDataRef vriDataRef, float value) {
+
+    XPLMDataRef ref;
+    bool ret = getXPLMDataRef(vriDataRef, ref);
+    if (!ret) {
+        return;
+    }
+
+    XPLMSetDatad(ref, value);
 
 }
 void BaseAircraft::setDatai(BaseDeviceHandler::VriDataRef vriDataRef, int value) {
@@ -1722,151 +3687,69 @@ bool BaseAircraft::getDatab(BaseDeviceHandler::VriDataRef vriDataRef, void* data
         return false;
     }
 
-    XPLMGetDatab(ref, data, 0, max);
+    int size = XPLMGetDatab(ref, data, 0, max);
     return true;
 }
+
 
 bool BaseAircraft::scanForPlane()
 {
 
-    updateIdent(NO_IDENT0);
-    updateIdent(NO_IDENT1);
+    /*updateIdent(NO_IDENT0);
+    updateIdent(NO_IDENT1);*/
 
     VLLog("scanForPlane: Looking for current User Plane based on tailnum");
 
     storeDataRef(BaseDeviceHandler::VriDataRef::DR_TailNum, "sim/aircraft/view/acf_tailnum");
 
-    char tailNum[MAX_TAIL_NR] = { 0 };
+    VLLog("scanForPlane: 1 ");
+
 
     bool ret = getDatab(BaseDeviceHandler::VriDataRef::DR_TailNum, tailNum, MAX_TAIL_NR);
     if (!ret) {
+
         VLError("scanForPlane: tailNum not available");
         return false;
     }
+    
+    VLLog("scanForPlane: 2 ");
 
-    ret = readConfigFile(tailNum);
-    if (!ret) {
-        VLError("scanForPlane: configuration file not available");
-        XPLMSpeakString("Error in COMBO config file detected");
-
-
-        if (!startsWith(tailNum, "ZB")) {
+  
+        bool retInit = initData();
+        if (!retInit) {
+            VLLog("Initialisation failed");
             return false;
         }
 
-        initData();
-        XPLMSpeakString("Using default ZIBO settings");
-
-
-    }
-
+    
     VLLog("Welcome %s", tailNum);
 
-    
+
 
     initMcpDisplays();
     initRadios();
-    
+
     updateMcpDisplays();
     initializeRadios();
 
+    setLights(4);
+
+    getYokePriority();
+
     isPlaneConfigured = true;
 
-
+    
     updateIdent("DSP0ZIBO");
-    updateIdent("DSP1v1.6");
+    updateIdent("DSP1v3.4");
 
     return true;
 
 
 }
 
-bool BaseAircraft::readConfigFile(const char* tailNum) {
-
-    VLLog("readConfigFile: Loading [%s]", tailNum);
-
-    char configFile[255] = { 0 };
-    sprintf(configFile, "%s%sConfig.csv", PLUGIN_CONFIG_PATH, tailNum);
-
-    VLLog("readConfigFile: Loading configFile [%s]", configFile);
-    std::ifstream inFile(configFile);
-
-    if (!inFile.is_open())
-    {
-        VLError("readConfigFile: Can't open configFile [%s]", configFile);
-        return false;
-    }
-    string lineStr;
-
-    cmdMap.clear();
-    drMap.clear();
-
-    VLLog("readConfigFile: cmdMap size [%d]", cmdMap.size());
-    VLLog("readConfigFile: drMap size [%d]", drMap.size());
-
-
-    int lineCnt = 0;
-
-    bool ret = true;
-    while (getline(inFile, lineStr))
-    {
-        lineCnt++;
-        if (startsWith(lineStr, "#")) {
-            continue;
-        }
-
-        if (!contains(lineStr, ',')) {
-            continue;
-        }
-
-        //  Split string
-        size_t index = lineStr.find(",");
-        if (index <= 0) {
-            continue;
-        }
-
-        try {
-            string commandOrRef = lineStr.substr(0, index);
-            string xplaneCommandOrDataref = lineStr.substr(index + 1, lineStr.size() - 1);
-            if (startsWith(xplaneCommandOrDataref, "INTERNAL_USE_ONLY")) {
-                continue;
-            }
-
-            char* writable = new char[xplaneCommandOrDataref.size() + 1];
-            std::copy(xplaneCommandOrDataref.begin(), xplaneCommandOrDataref.end(), writable);
-            writable[xplaneCommandOrDataref.size()] = '\0'; // don't forget the terminating 0
-
-
-            if (startsWith(lineStr, "DR_")) {
-                // dataref
-                BaseDeviceHandler::VriDataRef dataRef = ConvertToVriDataref(commandOrRef);
-                if (dataRef == BaseDeviceHandler::VriDataRef::DR_None) {
-                    VLError("readConfigFile: line [%d] VriDataRef [%s] not mapped", configFile, lineCnt, commandOrRef.c_str());
-                    continue;
-                }
-                ret &= storeDataRef(dataRef, writable);
-                continue;
-            }
-
-            // dataref
-            BaseDeviceHandler::VriCommand vriCommand = ConvertToVriCommand(commandOrRef);
-            if (vriCommand == BaseDeviceHandler::VriCommand::None) {
-                VLError("readConfigFile: line [%d] VriCommand [%s] not mapped", configFile, lineCnt, commandOrRef.c_str());
-                continue;
-            }
-            ret &= storeCommand(vriCommand, writable);
-            continue;
-        }
-        catch (int e) {
-            VLError("readConfigFile: line [%d] incorrect. error [%d]", configFile, lineCnt, e);
-        }
-
-    }
 
 
 
-    return true;
-}
 
 bool BaseAircraft::startsWith(const std::string& str, const std::string& cmp)
 {
@@ -1892,8 +3775,11 @@ string BaseAircraft::TrimFunction(string str)
 
 BaseDeviceHandler::VriDataRef BaseAircraft::ConvertToVriDataref(string vriDataRef) {
 
+    VLLog("ConvertToVriDataref: %s", vriDataRef.c_str());
+    if (startsWith(vriDataRef, "DR_TailNum")) return BaseDeviceHandler::VriDataRef::DR_TailNum;
     if (startsWith(vriDataRef, "DR_Altitude")) return BaseDeviceHandler::VriDataRef::DR_Altitude;
     if (startsWith(vriDataRef, "DR_CoursePilot")) return BaseDeviceHandler::VriDataRef::DR_CoursePilot;
+    if (startsWith(vriDataRef, "DR_CoursePilotFo")) return BaseDeviceHandler::VriDataRef::DR_CoursePilotFo;
     if (startsWith(vriDataRef, "DR_Speed")) return BaseDeviceHandler::VriDataRef::DR_Speed;
     if (startsWith(vriDataRef, "DR_Heading")) return BaseDeviceHandler::VriDataRef::DR_Heading;
     if (startsWith(vriDataRef, "DR_Vvs")) return BaseDeviceHandler::VriDataRef::DR_Vvs;
@@ -1956,16 +3842,137 @@ BaseDeviceHandler::VriDataRef BaseAircraft::ConvertToVriDataref(string vriDataRe
     if (startsWith(vriDataRef, "DR_PanelBrightness")) return BaseDeviceHandler::VriDataRef::DR_PanelBrightness;
     if (startsWith(vriDataRef, "DR_GenericLightsSwitch")) return BaseDeviceHandler::VriDataRef::DR_GenericLightsSwitch;
     if (startsWith(vriDataRef, "DR_MapMode")) return BaseDeviceHandler::VriDataRef::DR_MapMode;
+    if (startsWith(vriDataRef, "DR_MapModeFo")) return BaseDeviceHandler::VriDataRef::DR_MapModeFo;
     if (startsWith(vriDataRef, "DR_MapRange")) return BaseDeviceHandler::VriDataRef::DR_MapRange;
+    if (startsWith(vriDataRef, "DR_MapRangeFo")) return BaseDeviceHandler::VriDataRef::DR_MapRangeFo;
     if (startsWith(vriDataRef, "DR_Vor1Pos")) return BaseDeviceHandler::VriDataRef::DR_Vor1Pos;
+    if (startsWith(vriDataRef, "DR_Vor1PosFo")) return BaseDeviceHandler::VriDataRef::DR_Vor1PosFo;
+
     if (startsWith(vriDataRef, "DR_Vor2Pos")) return BaseDeviceHandler::VriDataRef::DR_Vor2Pos;
+    if (startsWith(vriDataRef, "DR_Vor2PosFo")) return BaseDeviceHandler::VriDataRef::DR_Vor2PosFo;
     if (startsWith(vriDataRef, "DR_Course")) return BaseDeviceHandler::VriDataRef::DR_Course;
+
+    if (startsWith(vriDataRef, "DR_CurrentAltitude")) return BaseDeviceHandler::VriDataRef::DR_CurrentAltitude;
+    if (startsWith(vriDataRef, "DR_CurrentAirspeed")) return BaseDeviceHandler::VriDataRef::DR_CurrentAirspeed;
+    if (startsWith(vriDataRef, "DR_CurrentHeading")) return BaseDeviceHandler::VriDataRef::DR_CurrentHeading;
+    if (startsWith(vriDataRef, "DR_SetAltitude")) return BaseDeviceHandler::VriDataRef::DR_SetAltitude;
+    if (startsWith(vriDataRef, "DR_SetAirspeed")) return BaseDeviceHandler::VriDataRef::DR_SetAirspeed;
+    if (startsWith(vriDataRef, "DR_Priority")) return BaseDeviceHandler::VriDataRef::DR_Priority;
+    if (startsWith(vriDataRef, "DR_BarStd")) return BaseDeviceHandler::VriDataRef::DR_BarStd;
+    if (startsWith(vriDataRef, "DR_BarStdFo")) return BaseDeviceHandler::VriDataRef::DR_BarStdFo;
+    if (startsWith(vriDataRef, "DR_Minimums")) return BaseDeviceHandler::VriDataRef::DR_Minimums;
+    if (startsWith(vriDataRef, "DR_MinimumsFo")) return BaseDeviceHandler::VriDataRef::DR_MinimumsFo;
+
+
+    if (startsWith(vriDataRef, "DR_BankAngle")) return BaseDeviceHandler::VriDataRef::DR_BankAngle;
 
     return BaseDeviceHandler::VriDataRef::DR_None;
 
 }
 
+string BaseAircraft::ConvertVriDatarefToString(BaseDeviceHandler::VriDataRef vriDataRef) {
+
+
+    switch (vriDataRef) {
+    case BaseDeviceHandler::VriDataRef::DR_TailNum: return  "DR_TailNum";
+    case BaseDeviceHandler::VriDataRef::DR_Altitude: return  "DR_Altitude";
+    case BaseDeviceHandler::VriDataRef::DR_CurrentAltitude: return  "DR_CurrentAltitude";
+    case BaseDeviceHandler::VriDataRef::DR_CoursePilot: return  "DR_CoursePilot";
+    case BaseDeviceHandler::VriDataRef::DR_CoursePilotFo: return  "DR_CoursePilotFo";
+    case BaseDeviceHandler::VriDataRef::DR_Speed: return  "DR_Speed";
+
+    case BaseDeviceHandler::VriDataRef::DR_Course: return  "DR_Course";
+    case BaseDeviceHandler::VriDataRef::DR_SetAirspeed: return  "DR_SetAirspeed";
+    case BaseDeviceHandler::VriDataRef::DR_CurrentHeading: return  "DR_CurrentHeading";
+    case BaseDeviceHandler::VriDataRef::DR_Priority: return  "DR_Priority";
+
+    case BaseDeviceHandler::VriDataRef::DR_BarStd: return  "DR_BarStd";
+    case BaseDeviceHandler::VriDataRef::DR_BarStdFo: return  "DR_BarStdFo";
+
+    case BaseDeviceHandler::VriDataRef::DR_Minimums: return  "DR_Minimums";
+    case BaseDeviceHandler::VriDataRef::DR_MinimumsFo: return  "DR_MinimumsFo";
+
+
+    case BaseDeviceHandler::VriDataRef::DR_Heading: return  "DR_Heading";
+    case BaseDeviceHandler::VriDataRef::DR_Vvs: return  "DR_Vvs";
+    case BaseDeviceHandler::VriDataRef::DR_Com1Standby: return  "DR_Com1Standby";
+    case BaseDeviceHandler::VriDataRef::DR_Com1: return  "DR_Com1";
+    case BaseDeviceHandler::VriDataRef::DR_Com2Standby: return  "DR_Altitude";
+    case BaseDeviceHandler::VriDataRef::DR_Com2: return  "DR_Com2";
+    case BaseDeviceHandler::VriDataRef::DR_Nav1Standby: return  "DR_Nav1Standby";
+    case BaseDeviceHandler::VriDataRef::DR_Nav1: return  "DR_Nav1";
+    case BaseDeviceHandler::VriDataRef::DR_Nav2Standby: return  "DR_Nav2Standby";
+    case BaseDeviceHandler::VriDataRef::DR_Nav2: return  "DR_Nav2";
+    case BaseDeviceHandler::VriDataRef::DR_Dme1Dist: return  "DR_Dme1Dist";
+    case BaseDeviceHandler::VriDataRef::DR_Dme1Ident: return  "DR_Dme1Ident";
+    case BaseDeviceHandler::VriDataRef::DR_Dme1Speed: return  "DR_Dme1Speed";
+    case BaseDeviceHandler::VriDataRef::DR_Dme1Course: return  "DR_Dme1Course";
+
+    case BaseDeviceHandler::VriDataRef::DR_Dme2Dist: return  "DR_Dme2Dist";
+    case BaseDeviceHandler::VriDataRef::DR_Dme2Ident: return  "DR_Dme2Ident";
+    case BaseDeviceHandler::VriDataRef::DR_Dme2Speed: return  "DR_Dme2Speed";
+    case BaseDeviceHandler::VriDataRef::DR_Dme2Course: return  "DR_Dme2Course";
+
+    case BaseDeviceHandler::VriDataRef::DR_TransponderCode: return  "DR_TransponderCode";
+    case BaseDeviceHandler::VriDataRef::DR_TransponderMode: return  "DR_TransponderMode";
+    case BaseDeviceHandler::VriDataRef::DR_AutoThrottle: return  "DR_AutoThrottle";
+    case BaseDeviceHandler::VriDataRef::DR_FlightDirector: return  "DR_FlightDirector";
+
+    case BaseDeviceHandler::VriDataRef::DR_ApMaster: return  "DR_ApMaster";
+    case BaseDeviceHandler::VriDataRef::DR_SpdN1: return  "DR_SpdN1";
+    case BaseDeviceHandler::VriDataRef::DR_SpdSpd: return  "DR_SpdSpd";
+    case BaseDeviceHandler::VriDataRef::DR_SpdLvl: return  "DR_SpdLvl";
+    case BaseDeviceHandler::VriDataRef::DR_HdgHdg: return  "DR_HdgHdg";
+    case BaseDeviceHandler::VriDataRef::DR_HdgHld: return  "DR_HdgHld";
+    case BaseDeviceHandler::VriDataRef::DR_BankAngle: return  "DR_BankAngle";
+    case BaseDeviceHandler::VriDataRef::DR_AltHld: return  "DR_AltHld";
+    case BaseDeviceHandler::VriDataRef::DR_VvsHld: return  "DR_VvsHld";
+    case BaseDeviceHandler::VriDataRef::DR_AplVnav: return  "DR_AplVnav";
+    case BaseDeviceHandler::VriDataRef::DR_AplLnav: return  "DR_AplLnav";
+
+
+    case BaseDeviceHandler::VriDataRef::DR_AplCmdA: return  "DR_AplCmdA";
+    case BaseDeviceHandler::VriDataRef::DR_AplCmdB: return  "DR_AplCmdB";
+    case BaseDeviceHandler::VriDataRef::DR_AplCmdC: return  "DR_AplCmdC";
+    case BaseDeviceHandler::VriDataRef::DR_CwsA: return  "DR_CwsA";
+    case BaseDeviceHandler::VriDataRef::DR_CwsB: return  "DR_CwsB";
+    case BaseDeviceHandler::VriDataRef::DR_AplApp: return  "DR_AplApp";
+    case BaseDeviceHandler::VriDataRef::DR_AplLoc: return  "DR_AplLoc";
+
+    case BaseDeviceHandler::VriDataRef::DR_Adf1Standby: return  "DR_Adf1Standby";
+    case BaseDeviceHandler::VriDataRef::DR_Adf1: return  "DR_Adf1";
+    case BaseDeviceHandler::VriDataRef::DR_Adf2Standby: return  "DR_Adf2Standby";
+    case BaseDeviceHandler::VriDataRef::DR_Adf2: return  "DR_Adf2";
+
+    case BaseDeviceHandler::VriDataRef::DR_PanelBrightness: return  "DR_PanelBrightness";
+    case BaseDeviceHandler::VriDataRef::DR_GenericLightsSwitch: return  "DR_GenericLightsSwitch";
+
+    case BaseDeviceHandler::VriDataRef::DR_MapMode: return  "DR_MapMode";
+    case BaseDeviceHandler::VriDataRef::DR_MapModeFo: return  "DR_MapModeFo";
+
+    case BaseDeviceHandler::VriDataRef::DR_MapRange: return  "DR_MapRange";
+    case BaseDeviceHandler::VriDataRef::DR_MapRangeFo: return  "DR_MapRangeFo";
+
+    case BaseDeviceHandler::VriDataRef::DR_Vor1Pos: return  "DR_Vor1Pos";
+    case BaseDeviceHandler::VriDataRef::DR_Vor1PosFo: return  "DR_Vor1PosFo";
+
+    case BaseDeviceHandler::VriDataRef::DR_Vor2Pos: return  "DR_Vor2Pos";
+    case BaseDeviceHandler::VriDataRef::DR_Vor2PosFo: return  "DR_Vor2PosFo";
+
+    case BaseDeviceHandler::VriDataRef::DR_CurrentAirspeed: return  "DR_CurrentAirspeed";
+    case BaseDeviceHandler::VriDataRef::DR_SetAltitude: return  "DR_SetAltitude";
+    default:
+        return "";
+
+    }
+
+
+
+}
+
 BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriCommand) {
+
+    VLTrace("ConvertToVriCommand: %s", VriCommand.c_str());
 
     if (startsWith(VriCommand, "AdfSel1")) return BaseDeviceHandler::VriCommand::AdfSel1;
     if (startsWith(VriCommand, "AdfSel2")) return BaseDeviceHandler::VriCommand::AdfSel2;
@@ -1990,8 +3997,8 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
     if (startsWith(VriCommand, "AplCmdBPlus")) return BaseDeviceHandler::VriCommand::AplCmdBPlus;
     if (startsWith(VriCommand, "AplCmdCMin")) return BaseDeviceHandler::VriCommand::AplCmdCMin;
     if (startsWith(VriCommand, "AplCmdCPlus")) return BaseDeviceHandler::VriCommand::AplCmdCPlus;
-    if (startsWith(VriCommand, "AplDomeOn")) return BaseDeviceHandler::VriCommand::AplDomeOn;
-    if (startsWith(VriCommand, "AplDomeOff")) return BaseDeviceHandler::VriCommand::AplDomeOff;
+    if (startsWith(VriCommand, "AplDomeUp")) return BaseDeviceHandler::VriCommand::AplDomeUp;
+    if (startsWith(VriCommand, "AplDomeDown")) return BaseDeviceHandler::VriCommand::AplDomeDown;
 
 
     if (startsWith(VriCommand, "AplCwsAMin")) return BaseDeviceHandler::VriCommand::AplCwsAMin;
@@ -2001,7 +4008,8 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
 
     if (startsWith(VriCommand, "AplFdMin")) return BaseDeviceHandler::VriCommand::AplFdMin;
     if (startsWith(VriCommand, "AplFdPlus")) return BaseDeviceHandler::VriCommand::AplFdPlus;
-
+    if (startsWith(VriCommand, "AplFdMinFo")) return BaseDeviceHandler::VriCommand::AplFdMinFo;
+    if (startsWith(VriCommand, "AplFdPlusFo")) return BaseDeviceHandler::VriCommand::AplFdPlusFo;
     if (startsWith(VriCommand, "AplLnavMin")) return BaseDeviceHandler::VriCommand::AplLnavMin;
     if (startsWith(VriCommand, "AplLnavPlus")) return BaseDeviceHandler::VriCommand::AplLnavPlus;
 
@@ -2078,6 +4086,22 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
     if (startsWith(VriCommand, "EfiWpt")) return BaseDeviceHandler::VriCommand::EfiWpt;
     if (startsWith(VriCommand, "EfiWx")) return BaseDeviceHandler::VriCommand::EfiWx;
 
+    if (startsWith(VriCommand, "EfiAdf1Fo")) return BaseDeviceHandler::VriCommand::EfiAdf1Fo;
+    if (startsWith(VriCommand, "EfiAdf2Fo")) return BaseDeviceHandler::VriCommand::EfiAdf2Fo;
+    if (startsWith(VriCommand, "EfiArptFo")) return BaseDeviceHandler::VriCommand::EfiArptFo;
+    if (startsWith(VriCommand, "EfiDataFo")) return BaseDeviceHandler::VriCommand::EfiDataFo;
+    if (startsWith(VriCommand, "EfiFpvFo")) return BaseDeviceHandler::VriCommand::EfiFpvFo;
+    if (startsWith(VriCommand, "EfiMtrFo")) return BaseDeviceHandler::VriCommand::EfiMtrFo;
+    if (startsWith(VriCommand, "EfiPosFo")) return BaseDeviceHandler::VriCommand::EfiPosFo;
+    if (startsWith(VriCommand, "EfiStaFo")) return BaseDeviceHandler::VriCommand::EfiStaFo;
+    if (startsWith(VriCommand, "EfiTerrFo")) return BaseDeviceHandler::VriCommand::EfiTerrFo;
+    if (startsWith(VriCommand, "EfiVor1Fo")) return BaseDeviceHandler::VriCommand::EfiVor1Fo;
+    if (startsWith(VriCommand, "EfiVor2Fo")) return BaseDeviceHandler::VriCommand::EfiVor2Fo;
+    if (startsWith(VriCommand, "EfiWptFo")) return BaseDeviceHandler::VriCommand::EfiWptFo;
+    if (startsWith(VriCommand, "EfiWxFo")) return BaseDeviceHandler::VriCommand::EfiWxFo;
+
+
+
     if (startsWith(VriCommand, "HdgHdgMin")) return BaseDeviceHandler::VriCommand::HdgHdgMin;
     if (startsWith(VriCommand, "HdgHdgPlus")) return BaseDeviceHandler::VriCommand::HdgHdgPlus;
     if (startsWith(VriCommand, "HdgHldMin")) return BaseDeviceHandler::VriCommand::HdgHldMin;
@@ -2093,8 +4117,20 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
     if (startsWith(VriCommand, "vMinUpperPlus")) return BaseDeviceHandler::VriCommand::vMinUpperPlus;
     if (startsWith(VriCommand, "vMinReset")) return BaseDeviceHandler::VriCommand::vMinReset;
 
+    if (startsWith(VriCommand, "vMinLowerPlusFo")) return BaseDeviceHandler::VriCommand::vMinLowerPlusFo;
+    if (startsWith(VriCommand, "vMinLowerMinFo")) return BaseDeviceHandler::VriCommand::vMinLowerMinFo;
+    if (startsWith(VriCommand, "vMinUpperMinFo")) return BaseDeviceHandler::VriCommand::vMinUpperMinFo;
+    if (startsWith(VriCommand, "vMinUpperPlusFo")) return BaseDeviceHandler::VriCommand::vMinUpperPlusFo;
+    if (startsWith(VriCommand, "vMinResetFo")) return BaseDeviceHandler::VriCommand::vMinResetFo;
+
+
     if (startsWith(VriCommand, "MinSelPlus")) return BaseDeviceHandler::VriCommand::MinSelPlus;
     if (startsWith(VriCommand, "MinSelMin")) return BaseDeviceHandler::VriCommand::MinSelMin;
+    if (startsWith(VriCommand, "MinSelPlusFo")) return BaseDeviceHandler::VriCommand::MinSelPlusFo;
+    if (startsWith(VriCommand, "MinSelMinFo")) return BaseDeviceHandler::VriCommand::MinSelMinFo;
+
+
+
 
     if (startsWith(VriCommand, "NavAux")) return BaseDeviceHandler::VriCommand::NavAux;
     if (startsWith(VriCommand, "NavSel1")) return BaseDeviceHandler::VriCommand::NavSel1;
@@ -2109,10 +4145,20 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
     if (startsWith(VriCommand, "NdmSelMin")) return BaseDeviceHandler::VriCommand::NdmSelMin;
     if (startsWith(VriCommand, "NdmSelPlus")) return BaseDeviceHandler::VriCommand::NdmSelPlus;
 
+    if (startsWith(VriCommand, "NdmMinFo")) return BaseDeviceHandler::VriCommand::NdmMinFo;
+    if (startsWith(VriCommand, "NdmPlusFo")) return BaseDeviceHandler::VriCommand::NdmPlusFo;
+    if (startsWith(VriCommand, "NdmSelMinFo")) return BaseDeviceHandler::VriCommand::NdmSelMinFo;
+    if (startsWith(VriCommand, "NdmSelPlusFo")) return BaseDeviceHandler::VriCommand::NdmSelPlusFo;
+
     if (startsWith(VriCommand, "NdrMin")) return BaseDeviceHandler::VriCommand::NdrMin;
     if (startsWith(VriCommand, "NdrPlus")) return BaseDeviceHandler::VriCommand::NdrPlus;
     if (startsWith(VriCommand, "NdrSelMin")) return BaseDeviceHandler::VriCommand::NdrSelMin;
     if (startsWith(VriCommand, "NdrSelPlus")) return BaseDeviceHandler::VriCommand::NdrSelPlus;
+
+    if (startsWith(VriCommand, "NdrMinFo")) return BaseDeviceHandler::VriCommand::NdrMinFo;
+    if (startsWith(VriCommand, "NdrPlusFo")) return BaseDeviceHandler::VriCommand::NdrPlusFo;
+    if (startsWith(VriCommand, "NdrSelMinFo")) return BaseDeviceHandler::VriCommand::NdrSelMinFo;
+    if (startsWith(VriCommand, "NdrSelPlusFo")) return BaseDeviceHandler::VriCommand::NdrSelPlusFo;
 
     if (startsWith(VriCommand, "OBSMin")) return BaseDeviceHandler::VriCommand::OBSMin;
     if (startsWith(VriCommand, "OBSPlus")) return BaseDeviceHandler::VriCommand::OBSPlus;
@@ -2143,10 +4189,278 @@ BaseDeviceHandler::VriCommand BaseAircraft::ConvertToVriCommand(string VriComman
     if (startsWith(VriCommand, "VvsSelPlus")) return BaseDeviceHandler::VriCommand::VvsSelPlus;
 
 
+    if (startsWith(VriCommand, "Com1StbyFineDown")) return BaseDeviceHandler::VriCommand::Com1StbyFineDown;
+    if (startsWith(VriCommand, "Com1StbyFineUp")) return BaseDeviceHandler::VriCommand::Com1StbyFineUp;
+    if (startsWith(VriCommand, "Com1StbyCourseUp")) return BaseDeviceHandler::VriCommand::Com1StbyCourseUp;
+    if (startsWith(VriCommand, "Com1StbyCourseDown")) return BaseDeviceHandler::VriCommand::Com1StbyCourseDown;
+
+    if (startsWith(VriCommand, "Com2StbyFineDown")) return BaseDeviceHandler::VriCommand::Com2StbyFineDown;
+    if (startsWith(VriCommand, "Com2StbyFineUp")) return BaseDeviceHandler::VriCommand::Com2StbyFineUp;
+    if (startsWith(VriCommand, "Com2StbyCourseUp")) return BaseDeviceHandler::VriCommand::Com2StbyCourseUp;
+    if (startsWith(VriCommand, "Com2StbyCourseDown")) return BaseDeviceHandler::VriCommand::Com2StbyCourseDown;
+
+    if (startsWith(VriCommand, "Nav1StbyFineDown")) return BaseDeviceHandler::VriCommand::Nav1StbyFineDown;
+    if (startsWith(VriCommand, "Nav1StbyFineUp")) return BaseDeviceHandler::VriCommand::Nav1StbyFineUp;
+    if (startsWith(VriCommand, "Nav1StbyCourseUp")) return BaseDeviceHandler::VriCommand::Nav1StbyCourseUp;
+    if (startsWith(VriCommand, "Nav1StbyCourseDown")) return BaseDeviceHandler::VriCommand::Nav1StbyCourseDown;
+
+    if (startsWith(VriCommand, "Nav2StbyFineDown")) return BaseDeviceHandler::VriCommand::Nav2StbyFineDown;
+    if (startsWith(VriCommand, "Nav2StbyFineUp")) return BaseDeviceHandler::VriCommand::Nav2StbyFineUp;
+    if (startsWith(VriCommand, "Nav2StbyCourseUp")) return BaseDeviceHandler::VriCommand::Nav2StbyCourseUp;
+    if (startsWith(VriCommand, "Nav2StbyCourseDown")) return BaseDeviceHandler::VriCommand::Nav2StbyCourseDown;
+
+
 
     return BaseDeviceHandler::VriCommand::None;
 
 }
+
+string BaseAircraft::ConvertVriCommandToString(BaseDeviceHandler::VriCommand vriCommand) {
+
+    switch (vriCommand) {
+    case BaseDeviceHandler::VriCommand::AdfSel1: return  "AdfSel1";
+    case BaseDeviceHandler::VriCommand::AdfSel2: return  "AdfSel2";
+    case BaseDeviceHandler::VriCommand::AdfAux: return  "AdfAux";
+    case BaseDeviceHandler::VriCommand::Adf: return  "Adf";
+
+    case BaseDeviceHandler::VriCommand::AltHldMin: return  "AltHldMin";
+    case BaseDeviceHandler::VriCommand::AltHldPlus: return  "AltHldPlus";
+    case BaseDeviceHandler::VriCommand::AltSelPlus: return  "AltSelPlus";
+    case BaseDeviceHandler::VriCommand::AltXXXMin: return  "AltXXXMin";
+    case BaseDeviceHandler::VriCommand::AltXXXPlus: return  "AltXXXPlus";
+
+    case BaseDeviceHandler::VriCommand::AplAppMin: return  "AplAppMin";
+    case BaseDeviceHandler::VriCommand::AplAppPlus: return  "AplAppPlus";
+    case BaseDeviceHandler::VriCommand::AplAtMin: return  "AplAtMin";
+    case BaseDeviceHandler::VriCommand::AplAtPlus: return  "AplAtPlus";
+
+    case BaseDeviceHandler::VriCommand::AplCmdAMin: return  "AplCmdAMin";
+    case BaseDeviceHandler::VriCommand::AplCmdAPlus: return  "AplCmdAPlus";
+
+    case BaseDeviceHandler::VriCommand::AplCmdBMin: return  "AplCmdBMin";
+    case BaseDeviceHandler::VriCommand::AplCmdBPlus: return  "AplCmdBPlus";
+
+    case BaseDeviceHandler::VriCommand::AplCmdCMin: return  "AplCmdCMin";
+    case BaseDeviceHandler::VriCommand::AplCmdCPlus: return  "AplCmdCPlus";
+
+    case BaseDeviceHandler::VriCommand::AplDomeUp: return  "AplDomeUp";
+    case BaseDeviceHandler::VriCommand::AplDomeDown: return  "AplDomeDown";
+
+    case BaseDeviceHandler::VriCommand::AplCwsAMin: return  "AplCwsAMin";
+    case BaseDeviceHandler::VriCommand::AplCwsAPlus: return  "AplCwsAPlus";
+    case BaseDeviceHandler::VriCommand::AplCwsBMin: return  "AplCwsBMin";
+    case BaseDeviceHandler::VriCommand::AplCwsBPlus: return  "AplCwsBPlus";
+
+    case BaseDeviceHandler::VriCommand::AplFdMin: return  "AplFdMin";
+    case BaseDeviceHandler::VriCommand::AplFdPlus: return  "AplFdPlus";
+    case BaseDeviceHandler::VriCommand::AplFdMinFo: return  "AplFdMinFo";
+    case BaseDeviceHandler::VriCommand::AplFdPlusFo: return  "AplFdPlusFo";
+    case BaseDeviceHandler::VriCommand::AplLnavMin: return  "AplLnavMin";
+    case BaseDeviceHandler::VriCommand::AplLnavPlus: return  "AplLnavPlus";
+
+    case BaseDeviceHandler::VriCommand::AplLocMin: return  "AplLocMin";
+    case BaseDeviceHandler::VriCommand::AplLocPlus: return  "AplLocPlus";
+
+    case BaseDeviceHandler::VriCommand::AplMastMin: return  "AplMastMin";
+    case BaseDeviceHandler::VriCommand::AplMastPlus: return  "AplMastPlus";
+    case BaseDeviceHandler::VriCommand::AplTogaMin: return  "AplTogaMin";
+    case BaseDeviceHandler::VriCommand::AplTogaPlus: return  "AplTogaPlus";
+    case BaseDeviceHandler::VriCommand::AplTogbMin: return  "AplTogbMin";
+    case BaseDeviceHandler::VriCommand::AplTogbPlus: return  "AplTogbPlus";
+    case BaseDeviceHandler::VriCommand::AplVnavMin: return  "AplVnavMin";
+    case BaseDeviceHandler::VriCommand::AplVnavPlus: return  "AplVnavPlus";
+
+
+    case BaseDeviceHandler::VriCommand::BankAngleMin: return  "BankAngleMin";
+    case BaseDeviceHandler::VriCommand::BankAnglePlus: return  "BankAnglePlus";
+
+    case BaseDeviceHandler::VriCommand::vBarUpperMin: return  "vBarUpperMin";
+    case BaseDeviceHandler::VriCommand::vBarUpperPlus: return  "vBarUpperPlus";
+    case BaseDeviceHandler::VriCommand::vBarLowerMin: return  "vBarLowerMin";
+    case BaseDeviceHandler::VriCommand::vBarLowerPlus: return  "vBarLowerPlus";
+    case BaseDeviceHandler::VriCommand::vBarStd: return  "vBarStd";
+    case BaseDeviceHandler::VriCommand::BarSelMin: return  "BarSelMin";
+    case BaseDeviceHandler::VriCommand::BarSelPlus: return  "BarSelPlus";
+
+    case BaseDeviceHandler::VriCommand::vBarUpperMinFo: return  "vBarUpperMinFo";
+    case BaseDeviceHandler::VriCommand::vBarUpperPlusFo: return  "vBarUpperPlusFo";
+    case BaseDeviceHandler::VriCommand::vBarLowerMinFo: return  "vBarLowerMinFo";
+    case BaseDeviceHandler::VriCommand::vBarLowerPlusFo: return  "vBarLowerPlusFo";
+    case BaseDeviceHandler::VriCommand::vBarStdFo: return  "vBarStdFo";
+    case BaseDeviceHandler::VriCommand::BarSelMinFo: return  "BarSelMinFo";
+    case BaseDeviceHandler::VriCommand::BarSelPlusFo: return  "BarSelPlusFo";
+
+    case BaseDeviceHandler::VriCommand::ComAux: return  "ComAux";
+    case BaseDeviceHandler::VriCommand::ComSel1: return  "ComSel1";
+    case BaseDeviceHandler::VriCommand::ComSel2: return  "ComSel2";
+    case BaseDeviceHandler::VriCommand::Coms: return  "Coms";
+    case BaseDeviceHandler::VriCommand::ComS: return  "ComS";
+    case BaseDeviceHandler::VriCommand::Comx: return  "Comx";
+    case BaseDeviceHandler::VriCommand::ComX: return  "ComX";
+    case BaseDeviceHandler::VriCommand::CrsxxxMin: return  "CrsxxxMin";
+    case BaseDeviceHandler::VriCommand::CrsxxxPlus: return  "CrsxxxPlus";
+    case BaseDeviceHandler::VriCommand::Crs: return  "Crs";
+    case BaseDeviceHandler::VriCommand::CtlBn0Of: return  "CtlBn0Of";
+    case BaseDeviceHandler::VriCommand::CtlBn0On: return  "CtlBn0On";
+    case BaseDeviceHandler::VriCommand::CtlBn1Of: return  "CtlBn1Of";
+    case BaseDeviceHandler::VriCommand::CtlBn1On: return  "CtlBn1On";
+    case BaseDeviceHandler::VriCommand::CtlBn2Of: return  "CtlBn2Of";
+    case BaseDeviceHandler::VriCommand::CtlBn2On: return  "CtlBn2On";
+    case BaseDeviceHandler::VriCommand::CtlBn3Of: return  "CtlBn3Of";
+    case BaseDeviceHandler::VriCommand::CtlBn3On: return  "CtlBn3On";
+    case BaseDeviceHandler::VriCommand::CtlBn4Of: return  "CtlBn4Of";
+    case BaseDeviceHandler::VriCommand::CtlBn4On: return  "CtlBn4On";
+    case BaseDeviceHandler::VriCommand::CtlBn5Of: return  "CtlBn5Of";
+    case BaseDeviceHandler::VriCommand::CtlBn5On: return  "CtlBn5On";
+    case BaseDeviceHandler::VriCommand::CtlBn6Of: return  "CtlBn6Of";
+    case BaseDeviceHandler::VriCommand::CtlBn6On: return  "CtlBn6On";
+    case BaseDeviceHandler::VriCommand::CtlBn7Of: return  "CtlBn7Of";
+    case BaseDeviceHandler::VriCommand::CtlBn7On: return  "CtlBn7On";
+
+    case BaseDeviceHandler::VriCommand::DmeAux: return  "DmeAux";
+    case BaseDeviceHandler::VriCommand::DmeSel1: return  "DmeSel1";
+    case BaseDeviceHandler::VriCommand::DmeSel2: return  "DmeSel2";
+
+
+    case BaseDeviceHandler::VriCommand::EfiAdf1: return  "EfiAdf1";
+    case BaseDeviceHandler::VriCommand::EfiAdf2: return  "EfiAdf2";
+    case BaseDeviceHandler::VriCommand::EfiArpt: return  "EfiArpt";
+    case BaseDeviceHandler::VriCommand::EfiData: return  "EfiData";
+    case BaseDeviceHandler::VriCommand::EfiFpv: return  "EfiFpv";
+    case BaseDeviceHandler::VriCommand::EfiMtr: return  "EfiMtr";
+    case BaseDeviceHandler::VriCommand::EfiPos: return  "EfiPos";
+    case BaseDeviceHandler::VriCommand::EfiSta: return  "EfiSta";
+    case BaseDeviceHandler::VriCommand::EfiTerr: return  "EfiTerr";
+
+    case BaseDeviceHandler::VriCommand::EfiVor1: return  "EfiVor1";
+    case BaseDeviceHandler::VriCommand::EfiVor2: return  "EfiVor2";
+    case BaseDeviceHandler::VriCommand::EfiWpt: return  "EfiWpt";
+    case BaseDeviceHandler::VriCommand::EfiWx: return  "EfiWx";
+
+    case BaseDeviceHandler::VriCommand::EfiAdf1Fo: return  "EfiAdf1Fo";
+    case BaseDeviceHandler::VriCommand::EfiAdf2Fo: return  "EfiAdf2Fo";
+    case BaseDeviceHandler::VriCommand::EfiArptFo: return  "EfiArptFo";
+    case BaseDeviceHandler::VriCommand::EfiDataFo: return  "EfiDataFo";
+    case BaseDeviceHandler::VriCommand::EfiFpvFo: return  "EfiFpvFo";
+    case BaseDeviceHandler::VriCommand::EfiMtrFo: return  "EfiMtrFo";
+    case BaseDeviceHandler::VriCommand::EfiPosFo: return  "EfiPosFo";
+    case BaseDeviceHandler::VriCommand::EfiStaFo: return  "EfiStaFo";
+    case BaseDeviceHandler::VriCommand::EfiTerrFo: return  "EfiTerrFo";
+
+    case BaseDeviceHandler::VriCommand::EfiVor1Fo: return  "EfiVor1Fo";
+    case BaseDeviceHandler::VriCommand::EfiVor2Fo: return  "EfiVor2Fo";
+    case BaseDeviceHandler::VriCommand::EfiWptFo: return  "EfiWptFo";
+    case BaseDeviceHandler::VriCommand::EfiWxFo: return  "EfiWxFo";
+
+    case BaseDeviceHandler::VriCommand::HdgHdgMin: return  "HdgHdgMin";
+    case BaseDeviceHandler::VriCommand::HdgHdgPlus: return  "HdgHdgPlus";
+    case BaseDeviceHandler::VriCommand::HdgHldMin: return  "HdgHldMin";
+    case BaseDeviceHandler::VriCommand::HdgHldPlus: return  "HdgHldPlus";
+    case BaseDeviceHandler::VriCommand::HdgSelMin: return  "HdgSelMin";
+    case BaseDeviceHandler::VriCommand::HdgSelPlus: return  "HdgSelPlus";
+    case BaseDeviceHandler::VriCommand::HdgXXXMin: return  "HdgXXXMin";
+    case BaseDeviceHandler::VriCommand::HdgXXXPlus: return  "HdgXXXPlus";
+
+
+    case BaseDeviceHandler::VriCommand::vMinLowerPlus: return  "vMinLowerPlus";
+    case BaseDeviceHandler::VriCommand::vMinLowerMin: return  "vMinLowerMin";
+    case BaseDeviceHandler::VriCommand::vMinUpperMin: return  "vMinUpperMin";
+    case BaseDeviceHandler::VriCommand::vMinUpperPlus: return  "vMinUpperPlus";
+    case BaseDeviceHandler::VriCommand::vMinReset: return  "vMinReset";
+    case BaseDeviceHandler::VriCommand::MinSelPlus: return  "MinSelPlus";
+    case BaseDeviceHandler::VriCommand::MinSelMin: return  "MinSelMin";
+
+    case BaseDeviceHandler::VriCommand::vMinLowerPlusFo: return  "vMinLowerPlusFo";
+    case BaseDeviceHandler::VriCommand::vMinLowerMinFo: return  "vMinLowerMinFo";
+    case BaseDeviceHandler::VriCommand::vMinUpperMinFo: return  "vMinUpperMinFo";
+    case BaseDeviceHandler::VriCommand::vMinUpperPlusFo: return  "vMinUpperPlusFo";
+    case BaseDeviceHandler::VriCommand::vMinResetFo: return  "vMinResetFo";
+    case BaseDeviceHandler::VriCommand::MinSelPlusFo: return  "MinSelPlusFo";
+    case BaseDeviceHandler::VriCommand::MinSelMinFo: return  "MinSelMinFo";
+
+    case BaseDeviceHandler::VriCommand::NavAux: return  "NavAux";
+    case BaseDeviceHandler::VriCommand::NavSel1: return  "NavSel1";
+    case BaseDeviceHandler::VriCommand::NavSel2: return  "NavSel2";
+    case BaseDeviceHandler::VriCommand::Navs: return  "Navs";
+    case BaseDeviceHandler::VriCommand::NavS: return  "NavS";
+    case BaseDeviceHandler::VriCommand::Navx: return  "Navx";
+    case BaseDeviceHandler::VriCommand::NavX: return  "NavX";
+
+    case BaseDeviceHandler::VriCommand::NdmMin: return  "NdmMin";
+    case BaseDeviceHandler::VriCommand::NdmPlus: return  "NdmPlus";
+    case BaseDeviceHandler::VriCommand::NdmSelMin: return  "NdmSelMin";
+    case BaseDeviceHandler::VriCommand::NdmSelPlus: return  "NdmSelPlus";
+    case BaseDeviceHandler::VriCommand::NdrMin: return  "NdrMin";
+    case BaseDeviceHandler::VriCommand::NdrPlus: return  "NdrPlus";
+    case BaseDeviceHandler::VriCommand::NdrSelMin: return  "NdrSelMin";
+    case BaseDeviceHandler::VriCommand::NdrSelPlus: return  "NdrSelPlus";
+
+    case BaseDeviceHandler::VriCommand::NdmMinFo: return  "NdmMinFo";
+    case BaseDeviceHandler::VriCommand::NdmPlusFo: return  "NdmPlusFo";
+    case BaseDeviceHandler::VriCommand::NdmSelMinFo: return  "NdmSelMinFo";
+    case BaseDeviceHandler::VriCommand::NdmSelPlusFo: return  "NdmSelPlusFo";
+    case BaseDeviceHandler::VriCommand::NdrMinFo: return  "NdrMinFo";
+    case BaseDeviceHandler::VriCommand::NdrPlusFo: return  "NdrPlusFo";
+    case BaseDeviceHandler::VriCommand::NdrSelMinFo: return  "NdrSelMinFo";
+    case BaseDeviceHandler::VriCommand::NdrSelPlusFo: return  "NdrSelPlusFo";
+
+    case BaseDeviceHandler::VriCommand::OBSMin: return  "OBSMin";
+    case BaseDeviceHandler::VriCommand::OBSPlus: return  "OBSPlus";
+    case BaseDeviceHandler::VriCommand::OBSSelMin: return  "OBSSelMin";
+    case BaseDeviceHandler::VriCommand::OBSSelPlus: return  "OBSSelPlus";
+    case BaseDeviceHandler::VriCommand::SpdLvlMin: return  "SpdLvlMin";
+    case BaseDeviceHandler::VriCommand::SpdLvlPlus: return  "SpdLvlPlus";
+    case BaseDeviceHandler::VriCommand::SpdN1Min: return  "SpdN1Min";
+    case BaseDeviceHandler::VriCommand::SpdN1Plus: return  "SpdN1Plus";
+
+    case BaseDeviceHandler::VriCommand::SpdSpdMin: return  "SpdSpdMin";
+    case BaseDeviceHandler::VriCommand::SpdSpdPlus: return  "SpdSpdPlus";
+
+    case BaseDeviceHandler::VriCommand::SpdXXXMin: return  "SpdXXXMin";
+    case BaseDeviceHandler::VriCommand::SpdXXXPlus: return  "SpdXXXPlus";
+    case BaseDeviceHandler::VriCommand::TrnAux: return  "TrnAux";
+    case BaseDeviceHandler::VriCommand::Trns: return  "Trns";
+    case BaseDeviceHandler::VriCommand::TrnSel: return  "TrnSel";
+    case BaseDeviceHandler::VriCommand::Trnx: return  "Trnx";
+    case BaseDeviceHandler::VriCommand::VvsHldMin: return  "VvsHldMin";
+    case BaseDeviceHandler::VriCommand::VvsHldPlus: return  "VvsHldPlus";
+    case BaseDeviceHandler::VriCommand::VvsMin: return  "VvsMin";
+    case BaseDeviceHandler::VriCommand::VvsPlus: return  "VvsPlus";
+    case BaseDeviceHandler::VriCommand::VvsSelMin: return  "VvsSelMin";
+    case BaseDeviceHandler::VriCommand::VvsSelPlus: return  "VvsSelPlus";
+
+    case BaseDeviceHandler::VriCommand::Com1StbyFineDown: return  "Com1StbyFineDown";
+    case BaseDeviceHandler::VriCommand::Com1StbyFineUp: return  "Com1StbyFineUp";
+    case BaseDeviceHandler::VriCommand::Com1StbyCourseUp: return  "Com1StbyCourseUp";
+    case BaseDeviceHandler::VriCommand::Com1StbyCourseDown: return  "Com1StbyCourseDown";
+
+    case BaseDeviceHandler::VriCommand::Com2StbyFineDown: return  "Com2StbyFineDown";
+    case BaseDeviceHandler::VriCommand::Com2StbyFineUp: return  "Com2StbyFineUp";
+    case BaseDeviceHandler::VriCommand::Com2StbyCourseUp: return  "Com2StbyCourseUp";
+    case BaseDeviceHandler::VriCommand::Com2StbyCourseDown: return  "Com2StbyCourseDown";
+
+    case BaseDeviceHandler::VriCommand::Nav1StbyFineDown: return  "Nav1StbyFineDown";
+    case BaseDeviceHandler::VriCommand::Nav1StbyFineUp: return  "Nav1StbyFineUp";
+    case BaseDeviceHandler::VriCommand::Nav1StbyCourseUp: return  "Nav1StbyCourseUp";
+    case BaseDeviceHandler::VriCommand::Nav1StbyCourseDown: return  "Nav1StbyCourseDown";
+
+    case BaseDeviceHandler::VriCommand::Nav2StbyFineDown: return  "Nav2StbyFineDown";
+    case BaseDeviceHandler::VriCommand::Nav2StbyFineUp: return  "Nav2StbyFineUp";
+    case BaseDeviceHandler::VriCommand::Nav2StbyCourseUp: return  "Nav2StbyCourseUp";
+    case BaseDeviceHandler::VriCommand::Nav2StbyCourseDown: return  "Nav2StbyCourseDown";
+
+
+
+    default:
+        return "";
+    }
+
+
+
+
+
+}
+
 
 
 
@@ -2172,13 +4486,15 @@ void BaseAircraft::setPanelLight(float captMainPanel, float foMainPanel, float o
     panel[2] = overheadPanel;
     panel[3] = pedestalPanel;
 
+
     setDatavf(BaseDeviceHandler::VriDataRef::DR_PanelBrightness, panel, 0, 4);
 }
 
-void BaseAircraft::setGenericLight(    float forwardPanelFlood, float glareShieldFlood, float pedestalFlood,
-        float captChartLight, float foChartLight, float circuitBrakerFlood) {
+void BaseAircraft::setGenericLight(float forwardPanelFlood, float glareShieldFlood, float pedestalFlood,
+    float captChartLight, float foChartLight, float circuitBrakerFlood) {
 
     float genricLight[13];
+
     genricLight[6] = forwardPanelFlood;
     genricLight[7] = glareShieldFlood;
     genricLight[8] = pedestalFlood;
@@ -2193,15 +4509,18 @@ void BaseAircraft::setGenericLight(    float forwardPanelFlood, float glareShiel
 
 
 
-bool BaseAircraft::checkFastToggle(uint64_t& last, uint64_t interval) {
+bool BaseAircraft::checkFastToggle(const char* name, uint64_t& last, uint64_t interval) {
     uint64_t ms = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
     uint64_t diff = ms - last;
 
     last = ms;
 
     if (diff < interval) {
+        VLLog("checkFastToggle: %s diff %d", name, diff);
         return true;
     }
+    VLLog("checkFastToggle: %s diff %d too slow", name, diff);
+
     return false;
 
 

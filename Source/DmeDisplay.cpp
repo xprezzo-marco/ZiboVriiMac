@@ -54,18 +54,18 @@ void DmeDisplay::sync()
 
 void DmeDisplay::updateDisplay()
 {
-	char command[9];
+    char command[MAX_DME_COMMAND]{0};
 
 	if (m_nr == 1) {
 
-		sprintf(command, "DMEd%04u", (int)(m_Dist * 10.0));
+		snprintf(command, MAX_DME_COMMAND, "DMEd%04u" ,(int)(m_Dist * 10.0));
 		sendIfChanged( command, m_dmeDistance);
 
 
-		sprintf(command, "DMEs%03u", m_Speed);
+        snprintf(command, MAX_DME_COMMAND, "DMEs%03u", m_Speed);
 		sendIfChanged( command, m_dmeSpeed);
 
-		sprintf(command, "DMc%03u ", (int)(m_Course + 360.5) % 360);
+        snprintf(command, MAX_DME_COMMAND,  "DMc%03u ", (int)(m_Course + 360.5) % 360);
 		sendIfChanged( command, m_dmeCourse);
 
 		strcpy(command, "DMi");
@@ -76,13 +76,13 @@ void DmeDisplay::updateDisplay()
 		return;
 	}
 
-	sprintf(command, "DMED%04u", (int)(m_Dist * 10.0));
+    snprintf(command, MAX_DME_COMMAND, "DMED%04u", (int)(m_Dist * 10.0));
 	sendIfChanged(command, m_dmeDistance);
 
-	sprintf(command, "DMES%03u", (int)m_Speed);
+    snprintf(command, MAX_DME_COMMAND,  "DMES%03u", (int)m_Speed);
 	sendIfChanged( command, m_dmeSpeed);
 
-	sprintf(command, "DMC%03u ", (int)(m_Course + 360.5) % 360);
+    snprintf(command, MAX_DME_COMMAND,  "DMC%03u ", (int)(m_Course + 360.5) % 360);
 	sendIfChanged( command, m_dmeCourse);
 
 	strcpy(command, "DMI");

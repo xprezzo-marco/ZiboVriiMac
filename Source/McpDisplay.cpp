@@ -119,13 +119,13 @@ void McpDisplay::updateDisplay()
 	switch (getMcpMode())
 	{
 	case Speed:
-		sprintf(command, "SPD%03.0f", m_xp_value);
+		snprintf(command, MAX_DISPLAY,"SPD%03.0f", m_xp_value);
 		break;
 	case Heading:
-		sprintf(command, "HDG%03.0f", m_xp_value);
+        snprintf(command, MAX_DISPLAY, "HDG%03.0f", m_xp_value);
 		break;
 	case Altitude:
-		sprintf(command, "ALT%03.0f", (m_xp_value / 100));
+        snprintf(command, MAX_DISPLAY,"ALT%03.0f", (m_xp_value / 100));
 		break;
 	
 	default:
